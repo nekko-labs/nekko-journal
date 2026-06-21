@@ -41,20 +41,25 @@ function readImage(file: File): Promise<PhotoRef> {
 function MoodPicker({ mood, onPick }: { mood?: number; onPick: (v: number) => void }) {
   return (
     <div className="flex gap-1.5">
-      {MOODS.map((m) => (
-        <button
-          key={m.v}
-          onClick={() => onPick(mood === m.v ? 0 : m.v)}
-          className="rounded-xl px-2.5 py-1.5 text-xl transition"
-          style={{
-            background: mood === m.v ? 'var(--accent-soft)' : 'var(--surface-2)',
-            outline: mood === m.v ? '2px solid var(--accent)' : 'none',
-          }}
-          title={`Mood ${m.v}`}
-        >
-          {m.e}
-        </button>
-      ))}
+      {MOODS.map((m) => {
+        const selected = mood === m.v;
+        return (
+          <button
+            key={m.v}
+            onClick={() => onPick(selected ? 0 : m.v)}
+            className={`rounded-xl px-2.5 py-1.5 text-xl transition-transform duration-150 hover:scale-110 ${selected ? 'animate-pop' : ''}`}
+            style={{
+              background: selected ? 'var(--accent-soft)' : 'var(--surface-2)',
+              outline: selected ? '2px solid var(--accent)' : 'none',
+              transitionTimingFunction: 'var(--ease-out-quint)',
+            }}
+            aria-pressed={selected}
+            title={`Mood ${m.v}`}
+          >
+            {m.e}
+          </button>
+        );
+      })}
     </div>
   );
 }

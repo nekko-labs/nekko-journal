@@ -21,9 +21,11 @@ function GoalCard({ goal }: { goal: Goal }) {
   const navigate = useNavigate();
   const done = goal.status === 'done';
   return (
-    <div className="card p-5" style={{ borderLeft: `4px solid ${goal.color ?? 'var(--accent)'}` }}>
+    <div className="card p-5">
       <div className="mb-2 flex items-start justify-between gap-3">
-        <div className="flex-1">
+        <div className="flex flex-1 items-start gap-2.5">
+          <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: goal.color ?? 'var(--accent)' }} aria-hidden />
+          <div className="flex-1">
           <input
             className={`serif w-full bg-transparent text-lg font-semibold outline-none ${done ? 'line-through opacity-60' : ''}`}
             value={goal.title}
@@ -36,20 +38,21 @@ function GoalCard({ goal }: { goal: Goal }) {
             value={goal.why ?? ''}
             onChange={(e) => mutate((v) => updateGoal(v, goal.year, goal.id, { why: e.target.value }))}
           />
+          </div>
         </div>
         <div className="flex shrink-0 gap-1.5">
           <button
             className="btn !px-2 !py-1.5"
             title={done ? 'Reopen' : 'Mark done'}
             onClick={() => mutate((v) => updateGoal(v, goal.year, goal.id, { status: done ? 'active' : 'done' }))}
-            style={done ? { background: '#34d399', color: 'white', borderColor: '#34d399' } : undefined}
+            style={done ? { background: 'var(--success)', color: 'white', borderColor: 'var(--success)' } : undefined}
           >
             {done ? <RotateCcw size={15} /> : <Check size={15} />}
           </button>
           <button
             className="btn !px-2 !py-1.5"
             title="Delete goal"
-            onClick={() => { if (confirm(`Delete "${goal.title}"?`)) mutate((v) => removeGoal(v, goal.year, goal.id)); }}
+            onClick={() => { if (confirm(`Delete "${goal.title}"? Its monthly plans will be removed too. This can't be undone.`)) mutate((v) => removeGoal(v, goal.year, goal.id)); }}
           >
             <Trash2 size={15} />
           </button>

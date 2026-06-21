@@ -10,9 +10,9 @@ function SyncBadge() {
   const lastSyncedAt = useCloud((s) => s.lastSyncedAt);
   const map: Record<string, { label: string; color: string }> = {
     idle: { label: 'Ready', color: 'var(--text-faint)' },
-    syncing: { label: 'Syncing…', color: 'var(--accent)' },
-    synced: { label: 'Synced', color: 'var(--mood-4)' },
-    error: { label: 'Sync error', color: '#e0744e' },
+    syncing: { label: 'Syncing…', color: 'var(--info)' },
+    synced: { label: 'Synced', color: 'var(--success)' },
+    error: { label: 'Sync error', color: 'var(--error)' },
     offline: { label: 'Offline', color: 'var(--text-faint)' },
   };
   const s = map[status] ?? map.idle;
@@ -39,7 +39,7 @@ function SignInForm() {
   };
   if (sent) {
     return (
-      <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--mood-4)' }}>
+      <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--success)' }}>
         <Check size={16} /> Check your email for a magic sign-in link.
       </div>
     );
@@ -54,7 +54,7 @@ function SignInForm() {
           onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} />
         <button className="btn btn-primary shrink-0" onClick={submit}><Mail size={16} /> Send link</button>
       </div>
-      {error && <p className="mt-2 text-sm" style={{ color: '#e0744e' }}>{error}</p>}
+      {error && <p className="mt-2 text-sm" style={{ color: 'var(--error)' }}>We couldn't send the link — {error.toLowerCase()}. Check the address and try again.</p>}
     </div>
   );
 }
@@ -65,6 +65,7 @@ export default function AccountView() {
   const plan = useCloud((s) => s.plan);
   const sync = useCloud((s) => s.sync);
   const signOut = useCloud((s) => s.signOut);
+  const status = useCloud((s) => s.status);
 
   return (
     <div className="mx-auto max-w-2xl p-6 md:p-8">
@@ -108,7 +109,9 @@ export default function AccountView() {
             <Section title="Sync">
               <div className="flex items-center justify-between">
                 <SyncBadge />
-                <button className="btn" onClick={() => void sync()}><RefreshCw size={15} /> Sync now</button>
+                <button className="btn" onClick={() => void sync()} disabled={status === 'syncing'}>
+                  <RefreshCw size={15} className={status === 'syncing' ? 'animate-spin' : ''} /> Sync now
+                </button>
               </div>
               <p className="mt-3 flex items-center gap-2 text-sm" style={{ color: 'var(--text-soft)' }}>
                 <Cloud size={15} style={{ color: 'var(--accent)' }} /> Your journal syncs automatically across your devices.

@@ -14,7 +14,7 @@ import { PageHeader } from '../components/ui';
 function YearRow({ strip }: { strip: YearStrip }) {
   const navigate = useNavigate();
   return (
-    <div className="card p-5 transition-all duration-300 hover:-translate-y-0.5" style={{ boxShadow: 'var(--shadow-soft)' }}>
+    <div className="card p-5 transition-all duration-300 hover:-translate-y-0.5" style={{ boxShadow: 'var(--shadow-soft)', transitionTimingFunction: 'var(--ease-out-quint)' }}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <button onClick={() => navigate(`/year/${strip.year}`)} className="serif text-3xl font-semibold hover:underline">
           {strip.year}

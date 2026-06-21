@@ -30,6 +30,7 @@ function MonthCell({ year, month, isCurrent }: { year: number; month: number; is
       style={{
         borderColor: isCurrent ? 'var(--accent)' : 'var(--border)',
         boxShadow: isCurrent ? '0 0 0 1px var(--accent), var(--shadow-soft)' : undefined,
+        transitionTimingFunction: 'var(--ease-out-quint)',
       }}
       onMouseEnter={(e) => (e.currentTarget.style.boxShadow = 'var(--shadow-lift)')}
       onMouseLeave={(e) => (e.currentTarget.style.boxShadow = isCurrent ? '0 0 0 1px var(--accent), var(--shadow-soft)' : '')}

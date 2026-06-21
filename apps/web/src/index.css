@@ -24,8 +24,19 @@
   --mood-4: #9fc6b0;      /* good / sage */
   --mood-5: #f4c15b;      /* joyful / gold */
 
+  /* Semantic state colors — used for state only (sync, validation, goal-done),
+     never decoration. Tuned for ≥4.5:1 text contrast on the paper/surface bg. */
+  --success: #2f8f66;
+  --error: #c2563a;
+  --warning: #b07d24;
+  --info: var(--accent);
+
   --shadow-soft: 0 1px 2px rgba(43, 39, 36, 0.04), 0 8px 24px -12px rgba(43, 39, 36, 0.12);
   --shadow-lift: 0 2px 6px rgba(43, 39, 36, 0.06), 0 16px 40px -16px rgba(43, 39, 36, 0.22);
+
+  /* Motion: ease-out only, no bounce/elastic. Product timing lives at call sites. */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme='dark'] {
@@ -44,6 +55,11 @@
   --mood-3: #aaa49b;
   --mood-4: #88b39c;
   --mood-5: #e0b257;
+
+  --success: #5cb992;
+  --error: #e08163;
+  --warning: #d6a24a;
+  --info: var(--accent);
 
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
   --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.35), 0 18px 44px -16px rgba(0, 0, 0, 0.7);
@@ -73,16 +89,17 @@ body {
     box-shadow: var(--shadow-soft);
   }
   .btn {
-    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all;
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
+    transition: background 150ms var(--ease-out-quint), border-color 150ms var(--ease-out-quint), transform 120ms var(--ease-out-quint), filter 150ms var(--ease-out-quint);
   }
   .btn:hover {
     background: var(--surface-2);
   }
   .btn:active {
-    transform: translateY(0.5px);
+    transform: scale(0.97);
   }
   .btn-primary {
     background: var(--accent);
@@ -107,16 +124,29 @@ body {
 
 .serif { font-family: 'Fraunces', Georgia, 'Times New Roman', serif; }
 
-/* Gentle, unhurried entrances */
+/* Gentle, unhurried entrances (legitimate sibling stagger on lists only) */
 @keyframes rise {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-rise { animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-rise { animation: rise 0.32s var(--ease-out-quint) both; }
+
+/* Quick state-feedback pop for selection chips (mood picker). */
+@keyframes pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.animate-pop { animation: pop 0.22s var(--ease-out-quint); }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-rise { animation: none; }
-  * { transition-duration: 0.01ms !important; }
+  .animate-rise, .animate-pop { animation: none !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Calm, thin scrollbars */
