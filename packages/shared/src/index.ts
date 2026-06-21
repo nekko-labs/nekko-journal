@@ -137,3 +137,16 @@ export function monthKeyLastYear(key: MonthKey): MonthKey {
   const { year, month } = parseMonthKey(key);
   return monthKey(year - 1, month);
 }
+
+// ---------------------------------------------------------------------------
+// Mood as a color primitive (1 = low → 5 = joyful)
+// ---------------------------------------------------------------------------
+
+export const MOOD_EMOJI = ['', '😞', '😕', '😐', '🙂', '😄'] as const;
+export const MOOD_LABELS = ['', 'Low', 'Meh', 'Okay', 'Good', 'Great'] as const;
+
+/** CSS custom-property reference for a mood value, e.g. `var(--mood-4)`. */
+export function moodVar(mood?: number): string {
+  if (!mood || mood < 1 || mood > 5) return 'var(--border)';
+  return `var(--mood-${mood})`;
+}

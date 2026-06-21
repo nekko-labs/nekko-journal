@@ -11,7 +11,7 @@ import {
   isMonthFilled,
 } from './vault.js';
 import { serializeMonth, parseMonth } from './frontmatter.js';
-import { trackerTotal, trackerSeries, buildYearInReview, thisMonthLastYear } from './lookback.js';
+import { trackerTotal, trackerSeries, buildYearInReview, thisMonthLastYear, journaledYears, buildYearStrip, lifetimeStats, moodSeries } from './lookback.js';
 import { seedDemoVault } from './seed.js';
 
 describe('month key helpers', () => {
@@ -112,5 +112,38 @@ describe('seeded demo vault', () => {
     expect(review.monthsJournaled).toBeGreaterThanOrEqual(3);
     expect(review.highlights.length).toBeGreaterThan(0);
     expect(review.trackerTotals.length).toBeGreaterThan(0);
+  });
+});
+
+describe('multi-year + lifetime analytics', () => {
+  const v = seedDemoVault(2026);
+
+  it('lists years newest-first including current + next', () => {
+    const years = journaledYears(v, 2026);
+    expect(years).toContain(2026);
+    expect(years).toContain(2027); // next year, for planning ahead
+    expect(years).toContain(2025); // has a seeded month
+    expect(years[0]).toBeGreaterThanOrEqual(years[years.length - 1]); // descending
+  });
+
+  it('builds a 12-cell year strip', () => {
+    const strip = buildYearStrip(v, 2026);
+    expect(strip.months).toHaveLength(12);
+    expect(strip.monthsJournaled).toBeGreaterThanOrEqual(3);
+    expect(strip.theme).toBe('Build & breathe');
+  });
+
+  it('computes lifetime stats including a consecutive run', () => {
+    const life = lifetimeStats(v);
+    expect(life.monthsJournaled).toBeGreaterThanOrEqual(4);
+    expect(life.totalHighlights).toBeGreaterThan(0);
+    expect(life.longestRun).toBeGreaterThanOrEqual(2); // Jan→Feb are consecutive
+    expect(life.yearsTracked).toBeGreaterThanOrEqual(2);
+  });
+
+  it('returns a 12-month mood series', () => {
+    const moods = moodSeries(v, 2026);
+    expect(moods).toHaveLength(12);
+    expect(moods[0]).toBe(4); // January seeded mood
   });
 });

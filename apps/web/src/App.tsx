@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, NavLink, useParams } from 'react-router-dom';
-import { CalendarDays, Target, Clock, Moon, Sun, Sparkles } from 'lucide-react';
+import { CalendarDays, CalendarRange, Target, BarChart3, Clock, Moon, Sun, Sparkles } from 'lucide-react';
 import { useVault } from './state/store';
 import YearView from './views/YearView';
 import MonthView from './views/MonthView';
 import GoalsView from './views/GoalsView';
 import LookbackView from './views/LookbackView';
+import YearsView from './views/YearsView';
+import InsightsView from './views/InsightsView';
 
 function ThemeToggle() {
   const theme = useVault((s) => s.vault?.settings.theme ?? 'light');
@@ -42,7 +44,9 @@ function Sidebar() {
         </div>
       </div>
       {link(`/year/${year}`, <CalendarDays size={17} />, 'Year')}
+      {link('/years', <CalendarRange size={17} />, 'All years')}
       {link(`/goals/${year}`, <Target size={17} />, 'Goals')}
+      {link('/insights', <BarChart3 size={17} />, 'Insights')}
       {link('/lookback', <Clock size={17} />, 'Look back')}
       <div className="mt-auto flex items-center justify-between px-1 pt-4">
         <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Local-first · your data</span>
@@ -76,8 +80,10 @@ function MobileBar() {
     <div className="flex items-center gap-1 border-b px-3 py-2 md:hidden" style={{ borderColor: 'var(--border)' }}>
       <span className="mr-1 text-lg">🌙</span>
       {item(`/year/${year}`, 'Year')}
+      {item('/years', 'Years')}
       {item(`/goals/${year}`, 'Goals')}
-      {item('/lookback', 'Look back')}
+      {item('/insights', 'Insights')}
+      {item('/lookback', 'Back')}
       <ThemeToggle />
     </div>
   );
@@ -110,8 +116,10 @@ export default function App() {
           <Routes>
             <Route path="/" element={<RedirectToCurrentYear />} />
             <Route path="/year/:year" element={<YearView />} />
+            <Route path="/years" element={<YearsView />} />
             <Route path="/month/:key" element={<MonthView />} />
             <Route path="/goals/:year" element={<GoalsView />} />
+            <Route path="/insights" element={<InsightsView />} />
             <Route path="/lookback" element={<LookbackView />} />
             <Route path="*" element={<RedirectToCurrentYear />} />
           </Routes>

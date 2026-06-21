@@ -2,28 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Nekko Journal — "warm paper, monthly ritual" design language.
+   Dawn-inspired: sunrise-warm neutrals, soft diffuse shadows, generous radii,
+   one calm indigo accent, mood as a color primitive. */
+
 :root {
-  --bg: #faf9f7;
-  --surface: #ffffff;
-  --surface-2: #f3f1ec;
-  --border: #e7e3da;
-  --text: #1c1a17;
-  --text-soft: #6b665d;
-  --text-faint: #a39e94;
+  --bg: #fbf7f1;          /* warm cream paper, never pure white */
+  --surface: #fffdfa;
+  --surface-2: #f4efe7;
+  --border: #ece4d8;
+  --text: #2b2724;        /* soft charcoal, never pure black */
+  --text-soft: #7a726a;
+  --text-faint: #a89f93;
   --accent: #7c83ff;
-  --accent-soft: #eceeff;
+  --accent-soft: #ecedff;
+
+  /* Mood scale 1→5 (low → joyful). Used as the year-grid color primitive. */
+  --mood-1: #9ba6c9;      /* low / blue */
+  --mood-2: #a9c0d0;      /* meh / steel */
+  --mood-3: #c9c2ba;      /* neutral / sand */
+  --mood-4: #9fc6b0;      /* good / sage */
+  --mood-5: #f4c15b;      /* joyful / gold */
+
+  --shadow-soft: 0 1px 2px rgba(43, 39, 36, 0.04), 0 8px 24px -12px rgba(43, 39, 36, 0.12);
+  --shadow-lift: 0 2px 6px rgba(43, 39, 36, 0.06), 0 16px 40px -16px rgba(43, 39, 36, 0.22);
 }
 
 [data-theme='dark'] {
-  --bg: #14130f;
-  --surface: #1d1b16;
-  --surface-2: #25231d;
-  --border: #322f27;
-  --text: #f1efe9;
-  --text-soft: #b3ad9f;
+  --bg: #1c1a18;          /* warm dark paper, not cold black */
+  --surface: #262320;
+  --surface-2: #2f2c27;
+  --border: #38332c;
+  --text: #ede6dc;
+  --text-soft: #a39a90;
   --text-faint: #756f62;
-  --accent: #9ea4ff;
-  --accent-soft: #232542;
+  --accent: #9aa0ff;      /* lifted for contrast on dark */
+  --accent-soft: #262a45;
+
+  --mood-1: #8a93b4;
+  --mood-2: #8fa6b6;
+  --mood-3: #aaa49b;
+  --mood-4: #88b39c;
+  --mood-5: #e0b257;
+
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px -14px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.35), 0 18px 44px -16px rgba(0, 0, 0, 0.7);
 }
 
 html, body, #root {
@@ -34,7 +57,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -46,10 +69,11 @@ body {
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
   }
   .btn {
-    @apply inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors;
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
@@ -57,17 +81,20 @@ body {
   .btn:hover {
     background: var(--surface-2);
   }
+  .btn:active {
+    transform: translateY(0.5px);
+  }
   .btn-primary {
     background: var(--accent);
     border-color: var(--accent);
     color: white;
   }
   .btn-primary:hover {
-    filter: brightness(1.05);
+    filter: brightness(1.06);
     background: var(--accent);
   }
   .input {
-    @apply w-full rounded-xl px-3 py-2 text-sm outline-none transition;
+    @apply w-full rounded-2xl px-3.5 py-2.5 text-sm outline-none transition;
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text);
@@ -78,7 +105,19 @@ body {
   }
 }
 
-.serif { font-family: 'Fraunces', Georgia, serif; }
+.serif { font-family: 'Fraunces', Georgia, 'Times New Roman', serif; }
+
+/* Gentle, unhurried entrances */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise { animation: rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise { animation: none; }
+  * { transition-duration: 0.01ms !important; }
+}
 
 /* Calm, thin scrollbars */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
