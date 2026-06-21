@@ -8,3 +8,9 @@ dist-web/
 *.local
 coverage/
 .vite/
+
+# impeccable (local design tooling — re-installable via `npx impeccable install`)
+.claude/skills/impeccable/
+.claude/settings.local.json
+.github/skills/impeccable/
+.impeccable/
