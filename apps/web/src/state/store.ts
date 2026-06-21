@@ -11,6 +11,8 @@ interface VaultState {
   load: () => Promise<void>;
   /** Run a core mutation against the live vault, then re-render + persist. */
   mutate: (fn: (v: Vault) => void) => void;
+  /** Replace the whole vault (e.g. a cloud pull); re-renders + persists. */
+  setVault: (vault: Vault) => void;
   toggleTheme: () => void;
   resetDemo: () => Promise<void>;
 }
@@ -49,6 +51,12 @@ export const useVault = create<VaultState>((set, get) => ({
     applyTheme(next);
     schedulePersist(next);
     set({ vault: next });
+  },
+
+  setVault: (vault) => {
+    applyTheme(vault);
+    schedulePersist(vault);
+    set({ vault });
   },
 
   toggleTheme: () => {

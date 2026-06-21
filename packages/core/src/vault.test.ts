@@ -12,6 +12,7 @@ import {
 } from './vault.js';
 import { serializeMonth, parseMonth } from './frontmatter.js';
 import { trackerTotal, trackerSeries, buildYearInReview, thisMonthLastYear, journaledYears, buildYearStrip, lifetimeStats, moodSeries } from './lookback.js';
+import { vaultTouchedAt, reconcileVaults } from './sync.js';
 import { seedDemoVault } from './seed.js';
 
 describe('month key helpers', () => {
@@ -145,5 +146,24 @@ describe('multi-year + lifetime analytics', () => {
     const moods = moodSeries(v, 2026);
     expect(moods).toHaveLength(12);
     expect(moods[0]).toBe(4); // January seeded mood
+  });
+});
+
+describe('cloud sync reconciliation (last-write-wins)', () => {
+  it('pushes when there is no remote', () => {
+    const local = seedDemoVault(2026);
+    expect(reconcileVaults(local, null)).toEqual({ winner: local, action: 'push' });
+  });
+
+  it('picks the more recently touched vault', () => {
+    const a = createEmptyVault();
+    const b = createEmptyVault();
+    updateMonth(a, '2026-01', { reflection: 'older' });
+    // force b to be strictly newer
+    updateMonth(b, '2026-01', { reflection: 'newer' });
+    b.months['2026-01'].updatedAt = '2099-01-01T00:00:00.000Z';
+    expect(vaultTouchedAt(b) > vaultTouchedAt(a)).toBe(true);
+    expect(reconcileVaults(a, b).action).toBe('pull');
+    expect(reconcileVaults(b, a).action).toBe('push');
   });
 });

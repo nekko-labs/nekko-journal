@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, NavLink, useParams } from 'react-router-dom';
-import { CalendarDays, CalendarRange, Target, BarChart3, Clock, Moon, Sun, Sparkles } from 'lucide-react';
+import { CalendarDays, CalendarRange, Target, BarChart3, Clock, Cloud, Moon, Sun, Sparkles } from 'lucide-react';
 import { useVault } from './state/store';
+import { useCloud } from './state/cloud';
 import YearView from './views/YearView';
 import MonthView from './views/MonthView';
 import GoalsView from './views/GoalsView';
 import LookbackView from './views/LookbackView';
 import YearsView from './views/YearsView';
 import InsightsView from './views/InsightsView';
+import AccountView from './views/AccountView';
+import PricingView from './views/PricingView';
 
 function ThemeToggle() {
   const theme = useVault((s) => s.vault?.settings.theme ?? 'light');
@@ -48,6 +51,9 @@ function Sidebar() {
       {link(`/goals/${year}`, <Target size={17} />, 'Goals')}
       {link('/insights', <BarChart3 size={17} />, 'Insights')}
       {link('/lookback', <Clock size={17} />, 'Look back')}
+      <div className="mt-4 border-t pt-2" style={{ borderColor: 'var(--border)' }}>
+        {link('/account', <Cloud size={17} />, 'Account & sync')}
+      </div>
       <div className="mt-auto flex items-center justify-between px-1 pt-4">
         <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Local-first · your data</span>
         <ThemeToggle />
@@ -92,10 +98,11 @@ function MobileBar() {
 export default function App() {
   const loaded = useVault((s) => s.loaded);
   const load = useVault((s) => s.load);
+  const initCloud = useCloud((s) => s.init);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void load().then(() => initCloud());
+  }, [load, initCloud]);
 
   if (!loaded) {
     return (
@@ -121,6 +128,8 @@ export default function App() {
             <Route path="/goals/:year" element={<GoalsView />} />
             <Route path="/insights" element={<InsightsView />} />
             <Route path="/lookback" element={<LookbackView />} />
+            <Route path="/account" element={<AccountView />} />
+            <Route path="/pricing" element={<PricingView />} />
             <Route path="*" element={<RedirectToCurrentYear />} />
           </Routes>
         </div>
