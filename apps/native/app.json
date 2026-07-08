@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Nekko Journal",
+    "slug": "nekko-journal",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "nekkojournal",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#fbf7f1",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "bundleIdentifier": "com.nekkolabs.journal",
+      "supportsTablet": true,
+      "usesIcloudStorage": true,
+      "infoPlist": {
+        "NSUbiquitousContainers": {
+          "iCloud.com.nekkolabs.journal": {
+            "NSUbiquitousContainerIsDocumentScopePublic": false,
+            "NSUbiquitousContainerName": "Nekko Journal",
+            "NSUbiquitousContainerSupportedFolderLevels": "One"
+          }
+        }
+      }
+    },
+    "android": {
+      "package": "com.nekkolabs.journal",
+      "adaptiveIcon": {
+        "backgroundColor": "#fbf7f1"
+      }
+    },
+    "extra": {
+      "note": "iCloud (iOS) + Google Drive appData (Android) sync are Premium; see README."
+    }
+  }
+}
