@@ -1,6 +1,6 @@
 ---
 status: active
-last-updated: 2026-06-25
+last-updated: 2026-07-09
 owner: Philip
 ---
 
@@ -73,6 +73,7 @@ Goal   { id, year, title, why?: string, category?: string,
          metricKind?: 'milestone' | 'number' | 'boolean',
          target?: number, unit?: string,
          monthlyTargets?: Record<MonthKey, string|number>,  // intention/target per month
+         plannedMonth?: number,     // 1–12: the month the goal is dragged into (v7)
          status: 'active' | 'done' | 'dropped',
          color?: string }
 
@@ -84,7 +85,7 @@ Month  { id: MonthKey ("YYYY-MM"), year, month (1-12),
          mood?: 1..5,
          photos: PhotoRef[],
          trackers: Record<TrackerId, number|boolean>,   // this month's values
-         goalCheckins: Record<GoalId, { note?: string, value?: number, done?: boolean }>,
+         goalCheckins: Record<GoalId, { note?: string, value?: number, done?: boolean, photos?: PhotoRef[] }>,
          createdAt, updatedAt }
 
 Tracker { id, name, kind: 'number'|'boolean'|'rating'|'count',
@@ -101,7 +102,9 @@ Trackers measure **monthly totals/trends**, not daily streaks. A tracker is a co
 ## Integrations & APIs
 
 - **Supabase** (optional cloud): magic-link auth; whole-vault JSONB snapshot with last-write-wins reconciliation (`reconcileVaults` in core); RLS via `supabase/schema.sql`. Configured by `VITE_SUPABASE_*` env vars — when unset, the app is 100% local (free tier untouched). Upgrade path (per-record tables, Storage for photos) documented in repo `DEPLOY.md`.
-- **Stripe** (planned): $2/mo Cloud billing with a webhook that flips `profiles.plan` to `cloud`. Handoff to Philip (needs accounts/credentials).
+- **Billing** (planned): **Premium $6/mo**, a **$3 intro for the first 3 months**, and an **occasional $3 sale**. Payment via **App Store / Play Store** on mobile and **Stripe** on the web (webhook flips the entitlement). App-level entitlement is `Settings.plan: 'free' | 'premium'`; the in-app Pricing screen flips it locally to preview premium. Handoff to Philip (needs accounts/credentials).
+- **Sync (Premium, no-backend target)**: iCloud (Apple) + Google Drive appData (Android) writing the vault snapshot to the user's own cloud; optional Supabase snapshot remains the web/desktop path. See SPEC open questions.
+- **Siri / agent (Premium, planned)**: iOS App Intents / Shortcuts + an agent-callable interface for "add goal" / "write this month".
 - **AI** (later): provider-agnostic, default Claude; BYO key stored locally; graceful mock mode.
 
 ## Infrastructure & Deployment
@@ -116,7 +119,7 @@ Trackers measure **monthly totals/trends**, not daily streaks. A tracker is a co
 Direction locked (Dawn-inspired refresh, PR #2; polished via the impeccable toolkit, PR #4):
 
 - **Typography**: Inter + Fraunces (system-font fallbacks — Fraunces→Georgia, Inter→system-ui — to avoid an external Google-Fonts `@import` that breaks offline use and hung preview screenshots). The "overused-font" warning from impeccable is accepted: the product register permits it and Philip chose it deliberately.
-- **Palette**: warm "dawn" paper — cream `#fbf7f1` / warm-dark `#1c1a18`; single indigo accent (`#7c83ff` → `#9aa0ff` dark). Theming via CSS vars + `data-theme`.
+- **Palette**: warm paper, calm ocean — cream `#fbf7f1` / warm-dark `#1c1a18`; single **ocean-teal** accent (`#3e8fa0` → `#6fb3c2` dark) with a lighter `--accent-2` for gradients. An 8-color **goal palette** (`GOAL_PALETTE`, ocean-leaning) colors goal chips. Theming via CSS vars + `data-theme`. (Superseded the earlier indigo accent in the v7 redesign, 2026-07-09.)
 - **Mood as a 5-step color primitive** — the mood-colored year grid is the signature surface.
 - **Shape & motion**: 20px radii, soft diffuse shadows, gentle rise animations; ease-out tokens, mood-chip pop, sync-icon spin, strong reduced-motion support.
 - **Semantic tokens**: success / error / warning / info (added in colorize pass). Removed an absolute-ban `border-left` accent stripe on goal cards in favor of a leading color dot.
@@ -147,7 +150,10 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 - **Standalone product** — own repo (`nekko-labs/nekko-journal`) + app, not coupled to nekko-notes, despite the local-first overlap. Keeps the product story focused.
 - **Native = a real Expo RN app**, not a WebView shell (unlike nekko-notes), because Nekko Journal has no canvas/DOM-bound editor — the UI is RN-friendly and can share `packages/core` + `packages/shared`.
 - **Nekko Labs default stack = Supabase + Vercel** (Philip's org-wide call).
-- **Free/paid split (honest)**: free = the *complete* app (all surfaces incl. Insights/analytics, unlimited entries/goals/trackers, local photos, offline, JSON export, no account). Paid Cloud $2/mo = reach & safety only (sync, encrypted backup, cloud photos, web access). Insights are NOT gated.
+- **Free/paid split (honest)**: free = the *complete* app (all surfaces incl. Insights, unlimited entries/goals, monthly markdown journal, local photos up to 3/month, offline, JSON export, no account). **Premium $6/mo** ($3 intro 3 months, occasional $3 sale) = reach & safety only (cross-device sync, Siri/agent, 25 photos/month, encrypted backup, web access). Insights are NOT gated.
+- **v7 consolidation (2026-07-09)**: the app is reframed around two things — a per-month markdown journal and goals dragged onto the months where they'll happen. Nav is a phone-first tab bar (Year/Goals/Insights/You); Year has semantic zoom (Years/Year/Timeline); Month is journal + goals-with-photos. Palette moved indigo → **ocean teal**. Highlights/struggles/trackers/mood stay in the model (import/migration) but the UI folds prose into the journal.
+- **Journal editor**: deliberately a plain textarea (natural cursor) + a formatting toolbar that inserts markdown; no in-editor syntax highlighting. A tiny dependency-free renderer handles `#`/`-`/`>`/`**`/`*`/`` ` ``/links/`---` (keeps the bundle small + offline).
+- **Photo limits**: enforced per month in core (`addGoalPhoto(..., limit)` returns `undefined` at the ceiling); 3 free / 25 premium (`photoLimit(plan)`).
 - **Cloud sync MVP = whole-vault JSONB snapshot, last-write-wins** at the vault level (`reconcileVaults` in core). Simple & correct for one user across their own devices.
 - **Zustand snapshot caching**: selectors returning a fresh array (`.filter(...)` / `?? []`) trigger "getSnapshot should be cached" infinite loops. Fix: select the stable source and derive in the render body; use a module-level constant for empty-array fallbacks. The Month surface subscribes to the whole `vault` ref (replaced on every `mutate`) so in-place edits re-render reliably.
 - **impeccable design tooling is gitignored** (`.claude/skills/impeccable/`, `.github/skills/impeccable/`, `.claude/settings.local.json`) — re-installable via `npx impeccable install`; only the design artifacts (PRODUCT.md/DESIGN.md) + code polish are committed.
@@ -164,9 +170,13 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ## Now / In Progress
 
-- [ ] **T6** — Local-first vault: File System Access "open folder" support (IndexedDB persistence + seeded demo data already done & verified). · Added: 2026-06-29 · [spec](SPEC.md#own-your-data-cloud--tiering)
+- [~] **T21** — Native iOS/Android Expo app (`apps/native`) sharing `packages/core` + `packages/shared`, ocean design; scaffold + key screens. · Added: 2026-07-09 · [spec](SPEC.md#platform--growth)
+- [ ] **T22** — Cross-device sync (Premium): no-backend iCloud (Apple) + Google Drive appData (Android) vault-snapshot sync; Supabase snapshot stays the web path. · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
+- [ ] **T23** — Siri / agent integration (Premium): iOS App Intents / Shortcuts + agent-callable "add goal" / "write this month". · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
+- [ ] **T24** — Real billing: App Store / Play Store IAP + Stripe (web) flipping the `plan` entitlement; the in-app toggle is a preview only. Handoff to Philip. · Added: 2026-07-09 · [spec](SPEC.md#plans--billing)
+- [ ] **T6** — Local-first vault: File System Access "open folder" support (IndexedDB persistence + seeded demo data already done & verified). · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T11** — Photos polish: thumbnails, captions UI, lightbox (drag/drop upload via data URL already done). · Added: 2026-06-29 · [spec](SPEC.md#month-surface)
-- [ ] **T13** — Own-your-data: File System Access folder save (JSON snapshot in IndexedDB + cloud snapshot already done). · Added: 2026-06-29 · [spec](SPEC.md#own-your-data-cloud--tiering)
+- [ ] **T13** — Own-your-data: File System Access folder save (JSON snapshot in IndexedDB + cloud snapshot already done). · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T14** — Responsive mobile-web (mobile bar done) → installable PWA + gentle monthly nudge (local notification / reminder). · Added: 2026-06-29 · [spec](SPEC.md#platform--growth)
 - [ ] **T16** — CI: Playwright E2E (build + unit CI already done via PR #1). · Added: 2026-06-29
 
@@ -180,7 +190,7 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 - [ ] **T15** — Marketing site + live demo deployed (Vercel) — Vercel config + DEPLOY.md done; actual deploy is Philip's. · Added: 2026-06-29 · [spec](SPEC.md#platform--growth)
 
 ### Phase 3c — Cloud, hosting & tiering (handoff)
-- [ ] **T_cloud_handoff** — Actual Supabase project + Vercel deploy + Stripe billing — handoff to Philip (needs account credentials). Includes moving photos from data URLs to Supabase Storage (private bucket + signed URLs) before promoting "cloud photos". · Added: 2026-06-29 · [spec](SPEC.md#own-your-data-cloud--tiering)
+- [ ] **T_cloud_handoff** — Actual Supabase project + Vercel deploy + Stripe billing — handoff to Philip (needs account credentials). Includes moving photos from data URLs to Supabase Storage (private bucket + signed URLs) before promoting "cloud photos". · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
 
 ### Phase 4 — AI (later)
 - [ ] **T17** — Reflection prompts / journaling assistant (mock-mode friendly). · Added: 2026-06-29 · [spec](SPEC.md#ai-later-phase)
@@ -202,7 +212,7 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 - [x] **T5** — App shell: nav (Year/Month/Goals/Look back), dark/light theming, Zustand vault store, React Router (HashRouter for Pages). · [spec](SPEC.md#foundation--shell)
 
 ### Phase 2 — Surfaces
-- [x] **T6 (partial)** — Local-first vault: IndexedDB persistence + seeded demo data (zero-config first run) done & verified. (Folder-open still in T6 above.) · [spec](SPEC.md#own-your-data-cloud--tiering)
+- [x] **T6 (partial)** — Local-first vault: IndexedDB persistence + seeded demo data (zero-config first run) done & verified. (Folder-open still in T6 above.) · [spec](SPEC.md#own-your-data--sync)
 - [x] **T7** — Year view: 12-month grid + yearly goals panel + theme word + year switcher. · [spec](SPEC.md#year-surface)
 - [x] **T8** — Month view: reflection editor, highlights, struggles (optional/de-emphasized), photos (drag/drop), trackers, goal check-ins, mood. · [spec](SPEC.md#month-surface)
 - [x] **T9** — Goals view: goal CRUD + monthly breakdown + color. (Progress in T9b.) · [spec](SPEC.md#goals-surface)
@@ -219,9 +229,17 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 - [x] **T_insights** — Insights analytics: lifetime stats, mood trend, tracker bar charts, goal completion. · Done: 2026-06-21 · [spec](SPEC.md#look-back--insights)
 
 ### Phase 3c — Cloud, hosting & tiering (PR #3, 2026-06-21)
-- [x] **T_cloud_sync** — Optional Supabase cloud sync (magic-link auth, whole-vault snapshot LWW, plan-gated); free tier stays fully local when unconfigured. · Done: 2026-06-21 · [spec](SPEC.md#own-your-data-cloud--tiering)
-- [x] **T_pricing** — Account & sync + Pricing surfaces; free / $2-mo Cloud split. · Done: 2026-06-21 · [spec](SPEC.md#own-your-data-cloud--tiering)
-- [x] **T_deploy_config** — Vercel hosting config + `supabase/schema.sql` (RLS) + `.env.example` + `DEPLOY.md` runbook. · Done: 2026-06-21 · [spec](SPEC.md#own-your-data-cloud--tiering)
+- [x] **T_cloud_sync** — Optional Supabase cloud sync (magic-link auth, whole-vault snapshot LWW, plan-gated); free tier stays fully local when unconfigured. · Done: 2026-06-21 · [spec](SPEC.md#own-your-data--sync)
+- [x] **T_pricing** — Account & sync + Pricing surfaces; free / $2-mo Cloud split. · Done: 2026-06-21 · [spec](SPEC.md#own-your-data--sync)
+- [x] **T_deploy_config** — Vercel hosting config + `supabase/schema.sql` (RLS) + `.env.example` + `DEPLOY.md` runbook. · Done: 2026-06-21 · [spec](SPEC.md#own-your-data--sync)
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4 — v7 ocean redesign + plans (2026-07-09)
+- [x] **T_v7_model** — Core model + tokens: `Goal.plannedMonth`, `GoalCheckin.photos`, `Settings.plan`/`notify`, `GOAL_PALETTE`/`goalColor`, `photoLimit` + `addGoalPhoto`/`removeGoalPhoto`/`countMonthPhotos`/`setGoalPlannedMonth`/`goalsInMonth`; ocean CSS tokens + `--grad`; reseeded demo (placed goals, markdown journals, multi-year history). 18 Vitest passing. · Done: 2026-07-09
+- [x] **T_v7_shell** — Phone-first tabbed shell (bottom tabs mobile / top nav desktop), simplified welcome (title + "one month at a time" + animated underline→arrow CTA), semantic-zoom Year (Years/Year/Timeline + ctrl-scroll) with drag-goals-onto-months + inline add. · Done: 2026-07-09 · [spec](SPEC.md#year-surface)
+- [x] **T_v7_month** — Month: markdown journal with a natural textarea + formatting toolbar (no highlighting), dependency-free renderer, goals-this-month with done toggle + per-goal photos honoring the plan limit. · Done: 2026-07-09 · [spec](SPEC.md#month-surface)
+- [x] **T_v7_surfaces** — Goals (in-calendar / unplanned), Insights (stat tiles + goal bars + progress), You (profile + theme + settings + export/import). · Done: 2026-07-09
+- [x] **T_v7_billing** — Free/Premium plans ($6/mo, $3 intro 3 months, occasional $3 sale), plan gating (photos 3/25, sync + Siri Premium), Pricing surface, plan preview toggle. · Done: 2026-07-09 · [spec](SPEC.md#plans--billing)
+- [x] **T_v7_responsive** — Responsive desktop + mobile web verified in preview (light + dark). · Done: 2026-07-09 · [spec](SPEC.md#platform--growth)

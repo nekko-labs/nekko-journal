@@ -1,104 +1,114 @@
 import { useEffect } from 'react';
-import { Routes, Route, Navigate, NavLink, useParams } from 'react-router-dom';
-import { CalendarDays, CalendarRange, Target, BarChart3, Clock, Cloud, Moon, Sun, Sparkles } from 'lucide-react';
+import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
+import { Calendar, Target, BarChart3, User, Sparkles } from 'lucide-react';
 import { useVault } from './state/store';
 import { useCloud } from './state/cloud';
+import OnboardingView, { ONBOARD_KEY } from './views/OnboardingView';
 import YearView from './views/YearView';
 import MonthView from './views/MonthView';
 import GoalsView from './views/GoalsView';
+import InsightsView from './views/InsightsView';
+import YouView from './views/YouView';
 import LookbackView from './views/LookbackView';
 import YearsView from './views/YearsView';
-import InsightsView from './views/InsightsView';
 import AccountView from './views/AccountView';
 import PricingView from './views/PricingView';
 
-function ThemeToggle() {
-  const theme = useVault((s) => s.vault?.settings.theme ?? 'light');
-  const toggle = useVault((s) => s.toggleTheme);
-  return (
-    <button className="btn !px-2.5" onClick={toggle} title="Toggle theme" aria-label="Toggle theme">
-      {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-    </button>
-  );
+function hasOnboarded(): boolean {
+  try { return localStorage.getItem(ONBOARD_KEY) === '1'; } catch { return true; }
 }
 
-function Sidebar() {
+function RootGate() {
   const year = useVault((s) => s.currentYear);
-  const link = (to: string, icon: React.ReactNode, label: string) => (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-          isActive ? 'bg-[var(--accent-soft)] text-[var(--accent)]' : 'text-[var(--text-soft)] hover:bg-[var(--surface-2)]'
-        }`
-      }
-    >
-      {icon}
-      {label}
-    </NavLink>
-  );
-  return (
-    <aside className="flex w-60 shrink-0 flex-col gap-1 border-r p-4" style={{ borderColor: 'var(--border)' }}>
-      <div className="mb-5 flex items-center gap-2 px-2">
-        <span className="text-2xl">🌙</span>
-        <div>
-          <div className="serif text-lg font-semibold leading-none">Nekko Journal</div>
-          <div className="text-xs" style={{ color: 'var(--text-faint)' }}>a month at a time</div>
-        </div>
-      </div>
-      {link(`/year/${year}`, <CalendarDays size={17} />, 'Year')}
-      {link('/years', <CalendarRange size={17} />, 'All years')}
-      {link(`/goals/${year}`, <Target size={17} />, 'Goals')}
-      {link('/insights', <BarChart3 size={17} />, 'Insights')}
-      {link('/lookback', <Clock size={17} />, 'Look back')}
-      <div className="mt-4 border-t pt-2" style={{ borderColor: 'var(--border)' }}>
-        {link('/account', <Cloud size={17} />, 'Account & sync')}
-      </div>
-      <div className="mt-auto flex items-center justify-between px-1 pt-4">
-        <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Local-first · your data</span>
-        <ThemeToggle />
-      </div>
-    </aside>
-  );
-}
-
-function RedirectToCurrentYear() {
-  const year = useVault((s) => s.currentYear);
+  if (!hasOnboarded()) return <Navigate to="/welcome" replace />;
   return <Navigate to={`/year/${year}`} replace />;
 }
 
-// Mobile top bar — sidebar is hidden below md.
-function MobileBar() {
+const TAB_ICON_SIZE = 21;
+
+/** The four primary surfaces. Bottom bar on mobile, top nav on desktop. */
+function useTabs() {
   const year = useVault((s) => s.currentYear);
-  const item = (to: string, label: string) => (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `flex-1 rounded-lg px-2 py-1.5 text-center text-xs font-medium ${
-          isActive ? 'bg-[var(--accent-soft)] text-[var(--accent)]' : 'text-[var(--text-soft)]'
-        }`
-      }
-    >
-      {label}
-    </NavLink>
-  );
+  return [
+    { to: `/year/${year}`, match: '/year', label: 'Year', icon: <Calendar size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
+    { to: `/goals/${year}`, match: '/goals', label: 'Goals', icon: <Target size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
+    { to: '/insights', match: '/insights', label: 'Insights', icon: <BarChart3 size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
+    { to: '/you', match: '/you', label: 'You', icon: <User size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
+  ];
+}
+
+function TopNav() {
+  const tabs = useTabs();
+  const { pathname } = useLocation();
   return (
-    <div className="flex items-center gap-1 border-b px-3 py-2 md:hidden" style={{ borderColor: 'var(--border)' }}>
-      <span className="mr-1 text-lg">🌙</span>
-      {item(`/year/${year}`, 'Year')}
-      {item('/years', 'Years')}
-      {item(`/goals/${year}`, 'Goals')}
-      {item('/insights', 'Insights')}
-      {item('/lookback', 'Back')}
-      <ThemeToggle />
-    </div>
+    <header className="hidden shrink-0 border-b md:block" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
+      <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🌙</span>
+          <span className="serif text-lg font-semibold">Nekko Journal</span>
+        </div>
+        <nav className="flex items-center gap-1">
+          {tabs.map((t) => {
+            const active = pathname.startsWith(t.match);
+            return (
+              <NavLink
+                key={t.match}
+                to={t.to}
+                className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors"
+                style={{
+                  color: active ? 'var(--accent)' : 'var(--text-soft)',
+                  background: active ? 'var(--accent-soft)' : 'transparent',
+                }}
+              >
+                {t.icon}
+                {t.label}
+              </NavLink>
+            );
+          })}
+        </nav>
+      </div>
+    </header>
   );
+}
+
+function BottomTabs() {
+  const tabs = useTabs();
+  const { pathname } = useLocation();
+  return (
+    <nav
+      className="shrink-0 border-t md:hidden"
+      style={{ borderColor: 'var(--border)', background: 'var(--bg)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div className="flex items-stretch justify-around px-2 py-1.5">
+        {tabs.map((t) => {
+          const active = pathname.startsWith(t.match);
+          return (
+            <NavLink
+              key={t.match}
+              to={t.to}
+              className="flex flex-1 flex-col items-center gap-1 py-1 transition-transform active:scale-95"
+              style={{ color: active ? 'var(--accent)' : 'var(--text-faint)' }}
+            >
+              {t.icon}
+              <span className="text-[10px] font-semibold">{t.label}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+/** Chrome (nav bars) is hidden on the welcome + month surfaces, matching the design. */
+function chromeVisible(pathname: string): boolean {
+  return pathname !== '/welcome' && !pathname.startsWith('/month');
 }
 
 export default function App() {
   const loaded = useVault((s) => s.loaded);
   const load = useVault((s) => s.load);
   const initCloud = useCloud((s) => s.init);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     void load().then(() => initCloud());
@@ -112,28 +122,30 @@ export default function App() {
     );
   }
 
+  const showChrome = chromeVisible(pathname);
+
   return (
-    <div className="flex h-full">
-      <div className="hidden md:flex">
-        <Sidebar />
-      </div>
-      <main className="flex h-full flex-1 flex-col overflow-hidden">
-        <MobileBar />
-        <div className="flex-1 overflow-y-auto">
+    <div className="flex h-full flex-col">
+      {showChrome && <TopNav />}
+      <main className="flex-1 overflow-y-auto">
+        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-5 pb-8 pt-4 sm:px-6">
           <Routes>
-            <Route path="/" element={<RedirectToCurrentYear />} />
+            <Route path="/" element={<RootGate />} />
+            <Route path="/welcome" element={<OnboardingView />} />
             <Route path="/year/:year" element={<YearView />} />
-            <Route path="/years" element={<YearsView />} />
             <Route path="/month/:key" element={<MonthView />} />
             <Route path="/goals/:year" element={<GoalsView />} />
             <Route path="/insights" element={<InsightsView />} />
+            <Route path="/you" element={<YouView />} />
+            <Route path="/years" element={<YearsView />} />
             <Route path="/lookback" element={<LookbackView />} />
             <Route path="/account" element={<AccountView />} />
             <Route path="/pricing" element={<PricingView />} />
-            <Route path="*" element={<RedirectToCurrentYear />} />
+            <Route path="*" element={<RootGate />} />
           </Routes>
         </div>
       </main>
+      {showChrome && <BottomTabs />}
     </div>
   );
 }

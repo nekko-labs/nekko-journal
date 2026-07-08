@@ -1,19 +1,23 @@
 import { create } from 'zustand';
-import { type Vault, seedDemoVault } from '@nekko/journal-core';
+import { type Vault, type Plan, seedDemoVault } from '@nekko/journal-core';
 import { loadVault, saveVault, clearVault } from '../lib/idb';
 
-const CURRENT_YEAR = 2026; // app "today" — keeps the seeded demo aligned with the vault
+const CURRENT_YEAR = 2026; // app "today"; keeps the seeded demo aligned with the vault
+const CURRENT_MONTH = 6; // June, the month the seeded story culminates in
 
 interface VaultState {
   vault: Vault | null;
   loaded: boolean;
   currentYear: number;
+  currentMonth: number;
   load: () => Promise<void>;
   /** Run a core mutation against the live vault, then re-render + persist. */
   mutate: (fn: (v: Vault) => void) => void;
   /** Replace the whole vault (e.g. a cloud pull); re-renders + persists. */
   setVault: (vault: Vault) => void;
   toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+  setPlan: (plan: Plan) => void;
   resetDemo: () => Promise<void>;
 }
 
@@ -32,6 +36,7 @@ export const useVault = create<VaultState>((set, get) => ({
   vault: null,
   loaded: false,
   currentYear: CURRENT_YEAR,
+  currentMonth: CURRENT_MONTH,
 
   load: async () => {
     let vault = await loadVault();
@@ -62,6 +67,18 @@ export const useVault = create<VaultState>((set, get) => ({
   toggleTheme: () => {
     get().mutate((v) => {
       v.settings.theme = v.settings.theme === 'dark' ? 'light' : 'dark';
+    });
+  },
+
+  setTheme: (theme) => {
+    get().mutate((v) => {
+      v.settings.theme = theme;
+    });
+  },
+
+  setPlan: (plan) => {
+    get().mutate((v) => {
+      v.settings.plan = plan;
     });
   },
 

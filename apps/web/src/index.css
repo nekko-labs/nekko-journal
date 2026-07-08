@@ -2,20 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Nekko Journal — "warm paper, monthly ritual" design language.
-   Dawn-inspired: sunrise-warm neutrals, soft diffuse shadows, generous radii,
-   one calm indigo accent, mood as a color primitive. */
+/* Nekko Journal: "warm paper, calm ocean" design language.
+   Warm cream/dark paper neutrals, soft diffuse shadows, generous radii,
+   one calm ocean-teal accent, mood as a color primitive. */
 
 :root {
   --bg: #fbf7f1;          /* warm cream paper, never pure white */
   --surface: #fffdfa;
-  --surface-2: #f4efe7;
-  --border: #ece4d8;
+  --surface-2: #f0eae0;
+  --border: #eae1d4;
   --text: #2b2724;        /* soft charcoal, never pure black */
   --text-soft: #7a726a;
   --text-faint: #a89f93;
-  --accent: #7c83ff;
-  --accent-soft: #ecedff;
+  --accent: #3e8fa0;      /* calm ocean teal */
+  --accent-2: #7fbfca;    /* lighter teal for gradients */
+  --accent-soft: #e6eff1;
+  --grad: linear-gradient(135deg, #3e8fa0, #7fbfca);
 
   /* Mood scale 1→5 (low → joyful). Used as the year-grid color primitive. */
   --mood-1: #9ba6c9;      /* low / blue */
@@ -24,8 +26,8 @@
   --mood-4: #9fc6b0;      /* good / sage */
   --mood-5: #f4c15b;      /* joyful / gold */
 
-  /* Semantic state colors — used for state only (sync, validation, goal-done),
-     never decoration. Tuned for ≥4.5:1 text contrast on the paper/surface bg. */
+  /* Semantic state colors: used for state only (sync, validation, goal-done),
+     never decoration. Tuned for >=4.5:1 text contrast on the paper/surface bg. */
   --success: #2f8f66;
   --error: #c2563a;
   --warning: #b07d24;
@@ -47,8 +49,10 @@
   --text: #ede6dc;
   --text-soft: #a39a90;
   --text-faint: #756f62;
-  --accent: #9aa0ff;      /* lifted for contrast on dark */
-  --accent-soft: #262a45;
+  --accent: #6fb3c2;      /* lifted ocean for contrast on dark */
+  --accent-2: #47899b;
+  --accent-soft: #21323a;
+  --grad: linear-gradient(135deg, #6fb3c2, #47899b);
 
   --mood-1: #8a93b4;
   --mood-2: #8fa6b6;
@@ -130,6 +134,27 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-rise { animation: rise 0.32s var(--ease-out-quint) both; }
+
+/* Onboarding CTA: the button rises in after the subtext; the arrow then slides
+   in from the left so the underline reads as extending into the arrowhead. */
+.onboard-cta { animation: rise 0.5s var(--ease-out-quint) both; animation-delay: 0.3s; }
+.cta-arrow { animation: cta-arrow-in 0.6s var(--ease-out-quint) both; animation-delay: 0.5s; }
+@keyframes cta-arrow-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Semantic-zoom transitions on the Year surface. */
+@keyframes zoom-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes zoom-out { from { opacity: 0; transform: scale(1.08); } to { opacity: 1; transform: scale(1); } }
+.animate-zoom-in { animation: zoom-in 0.4s var(--ease-out-quint) both; }
+.animate-zoom-out { animation: zoom-out 0.4s var(--ease-out-quint) both; }
+@keyframes grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.animate-grow-y { animation: grow-y 0.5s var(--ease-out-quint) both; transform-origin: bottom; }
+
+@media (prefers-reduced-motion: reduce) {
+  .onboard-cta, .cta-arrow, .animate-zoom-in, .animate-zoom-out, .animate-grow-y { animation: none !important; }
+}
 
 /* Quick state-feedback pop for selection chips (mood picker). */
 @keyframes pop {

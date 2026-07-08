@@ -47,14 +47,14 @@ function SignInForm() {
   return (
     <div>
       <p className="mb-3 text-sm" style={{ color: 'var(--text-soft)' }}>
-        Sign in with a magic link — no password. Your local journal stays exactly as it is and merges with the cloud.
+        Sign in with a magic link, no password. Your local journal stays exactly as it is and merges with the cloud.
       </p>
       <div className="flex gap-2">
         <input className="input" type="email" placeholder="you@example.com" value={email}
           onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} />
         <button className="btn btn-primary shrink-0" onClick={submit}><Mail size={16} /> Send link</button>
       </div>
-      {error && <p className="mt-2 text-sm" style={{ color: 'var(--error)' }}>We couldn't send the link — {error.toLowerCase()}. Check the address and try again.</p>}
+      {error && <p className="mt-2 text-sm" style={{ color: 'var(--error)' }}>We couldn't send the link ({error.toLowerCase()}). Check the address and try again.</p>}
     </div>
   );
 }
@@ -69,7 +69,7 @@ export default function AccountView() {
 
   return (
     <div className="mx-auto max-w-2xl p-6 md:p-8">
-      <PageHeader title="Account & sync" subtitle="Your journal is yours — local-first, always. Cloud sync is optional." />
+      <PageHeader title="Account & sync" subtitle="Your journal is yours: local-first, always. Cloud sync is a Premium convenience." />
 
       {!configured ? (
         <Section title="Local only">
@@ -77,7 +77,7 @@ export default function AccountView() {
             <CloudOff size={20} style={{ color: 'var(--text-faint)' }} className="mt-0.5" />
             <div>
               <p className="text-sm" style={{ color: 'var(--text-soft)' }}>
-                This build runs fully offline — every feature works and your data lives on this device.
+                This build runs fully offline; every feature works and your data lives on this device.
                 Cloud sync isn't configured here.
               </p>
               <Link to="/pricing" className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium" style={{ color: 'var(--accent)' }}>
@@ -118,11 +118,11 @@ export default function AccountView() {
               </p>
             </Section>
           ) : (
-            <Section title="Upgrade to Cloud">
+            <Section title="Upgrade to Premium">
               <p className="text-sm" style={{ color: 'var(--text-soft)' }}>
-                You're on the free plan — fully functional, on this device. Add sync, encrypted backup, cloud photos and web access for <strong>$2/month</strong>.
+                You're on the free plan, fully functional on this device. Premium adds sync, Siri &amp; agent integration, more photos, encrypted backup and web access for <strong>$6/month</strong> (first 3 months $3).
               </p>
-              <Link to="/pricing" className="btn btn-primary mt-3"><Sparkles size={15} /> See Cloud plan</Link>
+              <Link to="/pricing" className="btn btn-primary mt-3"><Sparkles size={15} /> See Premium</Link>
             </Section>
           )}
         </div>

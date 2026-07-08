@@ -1,6 +1,6 @@
 ---
 status: active
-last-updated: 2026-06-25
+last-updated: 2026-07-09
 owner: Philip
 ---
 
@@ -41,25 +41,34 @@ People who tried daily journaling/habit apps (Day One, Stoic, Habitica, streak t
 
 ## User Journeys & Experiences
 
-The atomic unit is the **Month**. Everything orbits it. A month is created lazily — it doesn't exist until the user opens or edits it. The app is organized around four core surfaces:
+The atomic unit is the **Month**. Everything orbits it. A month is created lazily (it doesn't exist until the user opens or edits it). The **consolidated design (v7)** centers on the two things that matter: a **markdown journal per month**, and **goals broken down across the year and placed into the months where they'll happen**. The app shell is phone-first: a bottom tab bar (Year / Goals / Insights / You) on mobile, a top nav on desktop, warm-paper calm-ocean palette, light & dark.
 
-### 1. Year (home) — the landing surface
+### 1. Year (home) — the semantic-zoom surface
 
-A user opens the app and lands on the current year. They see a **12-month grid**: each month cell shows a thumbnail/highlight, a filled/empty state (journaled or not), and a glance at mood/photo count. Clicking a cell goes to that Month. A **yearly goals** panel shows the year's goals at-a-glance with progress. An optional, editable **theme/word of the year** sits at the top, and a year switcher lets them move between years.
+A user lands on the current year and can **zoom** between three levels with a segmented control (Years / Year / Timeline) or ctrl + scroll:
+
+- **Years**: an overview of every year, each a 12-cell strip showing which months hold placed goals, with the year's theme word. Tap a year to zoom into it.
+- **Year (grid)**: a two-column month grid. Each month cell shows the goal chips planned into it; a **"this month"** badge marks the current month; empty months read "＋ drop a goal". Below the grid, the **yearly goals list** supports **inline add** and **drag**: drag a goal onto a month to plan it, or back onto the list to unplan it. An editable **theme/word of the year** sits at the top.
+- **Timeline**: the months as a scrolling list, each with its planned goal chips.
 
 ### 2. Month — the journaling ritual surface
 
-Once a month, the user opens the current month and reflects. There's a calm, minimal **Markdown reflection editor**; a **highlights** list (add/remove); an optional, visually de-emphasized **struggles** list (so it never feels mandatory); **photos** (drag/drop or pick, in a captioned grid); **trackers** (this month's values via steppers/toggles/ratings); and a **goal check-in** for each active goal (a quick "how did this month go" note + progress). Optional **mood** and **gratitude** round it out, with gentle prompts ("What's one thing you're proud of this month?").
+The user opens a month (back to the year, prev/next month) and sees the big serif month title, then two things:
+
+- **Journal (markdown)**: a calm, natural editor — a plain text area with a cursor and a small formatting toolbar (heading, bold, italic, code, list, quote, link). No syntax highlighting or editor gimmicks. Tapping **Done** renders the markdown (`#`/`##`/`###` headings, `-`/`*` bullets, `1.` ordered lists, `>` quotes, `**bold**`, `*italic*`, `` `code` ``, `[links](url)`, `---` rules).
+- **Goals this month**: each goal placed into this month, with a done toggle and its own **photos** (add/remove, subject to the plan's per-month photo limit).
 
 ### 3. Goals — manage and break down goals
 
-The user lists and edits their yearly goals (title, why, category, color), then **breaks each goal into months** by setting a monthly intention/target — the "plan it so you remember and achieve it" core value. Progress across the year is computed from month check-ins and trackers.
+Every goal for the year in two groups: **In the calendar** (planned into a month, shown with a month tag and a done toggle) and **Unplanned** (waiting on the board). Goals are added on the Year board; here the user reviews, toggles done, deletes, and jumps to a goal's month.
 
-### 4. Look back (Timeline / Year in Review) — the delight surface
+### 4. Insights — the reflection & delight surface
 
-The user scrolls chronologically through past months (highlight + photo + mood) in a **timeline**, gets a **"this month last year"** callback, and at year-end sees a **Year in Review** montage — top photos, all highlights, tracker totals, goals achieved (Spotify-Wrapped energy; shareable/exportable later).
+All-time **stat tiles** (months journaled, goals achieved, years tracked, goals set, photos kept, words written), a **goals-across-the-year** bar chart, and a **progress** bar + goal list. It links out to the **Look back** timeline (this-month-last-year, year-in-review), keeping the delight surface one tap away without cluttering the primary tabs.
 
-The app shell offers Year / Month / Goals / Look back via a left rail or top tabs, a calm dark/light theme, and generous whitespace.
+### 5. You — profile & settings
+
+Avatar + "your journal" summary, a **Light / Dark** theme control, and settings rows: **Plan** (Free / Premium → pricing), **Sync & account**, **Monthly nudge**, **Export vault**, **Import data**, **Reset to demo**.
 
 ## What Success Looks Like
 
@@ -73,47 +82,52 @@ The app shell offers Year / Month / Goals / Look back via a left rail or top tab
 Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progress]` / `[planned]`. Capability-level descriptions — task-level breakdown lives in [TASKS.md](TASKS.md).
 
 ### Foundation & shell
-- **App shell & navigation** `[shipped]` — Year / Month / Goals / Look back via nav rail/tabs, React Router routing.
-- **Calm dark/light theming** `[shipped]` — CSS-variable theme with `data-theme`, warm "dawn" paper palette, generous whitespace.
+- **Phone-first tabbed shell** `[shipped]` — Year / Goals / Insights / You via a bottom tab bar on mobile and a top nav on desktop; chrome hidden on the welcome + month surfaces. React Router (HashRouter).
+- **Simplified welcome** `[shipped]` — the first screen is just the title, "one month at a time", and one animated inspirational CTA (a teal underline that flows into an arrow). Shown once per device.
+- **Calm dark/light theming** `[shipped]` — CSS-variable theme with `data-theme`, warm-paper **calm-ocean** palette (teal accent `#3e8fa0` / `#6fb3c2` dark), generous whitespace.
 - **Local-first vault (zero-config)** `[in progress]` — IndexedDB persistence + seeded demo data so the app is alive on first run with no setup. Open-a-real-local-folder (File System Access API) still planned.
 
 ### Year surface
-- **12-month grid** `[shipped]` — mood-colored month cards with photo thumb + highlights; filled/empty journaled state.
-- **Yearly goals panel** `[shipped]` — the year's goals with at-a-glance progress.
-- **Theme / word of the year** `[shipped]` — optional, editable.
-- **Year switcher** `[shipped]` — prev/next year, jump to year.
-- **All Years multi-year overview** `[shipped]` — a 12-month mood strip per year, to see across multiple years.
+- **Semantic zoom (Years / Year / Timeline)** `[shipped]` — segmented control + ctrl+scroll to move between a multi-year overview, the month grid, and a scrolling timeline.
+- **Two-column month grid** `[shipped]` — goal chips per month, "this month" badge, "＋ drop a goal" empty state.
+- **Drag goals onto months** `[shipped]` — drag a yearly goal onto the month where it'll happen (`goal.plannedMonth`); drag back to the list to unplan.
+- **Yearly goals list + inline add** `[shipped]` — add a goal for the year inline; each row is draggable.
+- **Theme / word of the year** `[shipped]` — editable inline on the grid.
+- **Multi-year overview** `[shipped]` — a 12-cell placement strip per year with the year's theme word.
 
 ### Month surface
-- **Reflection editor** `[shipped]` — calm/minimal Markdown body.
-- **Highlights** `[shipped]` — add/remove list.
-- **Struggles (optional)** `[shipped]` — visually de-emphasized so it's never mandatory.
-- **Photos** `[in progress]` — drag/drop or picker upload (data URL today); thumbnails, captions UI, and lightbox still planned.
-- **Trackers (monthly entry)** `[shipped]` — steppers/toggles/ratings for each active tracker; define/edit-trackers UI still planned.
-- **Goal check-ins** `[shipped]` — per-goal "how did this month go" note + progress.
-- **Mood & gratitude** `[shipped]` — optional, gentle prompts.
+- **Markdown journal + natural editor** `[shipped]` — plain textarea with a cursor and a formatting toolbar (heading/bold/italic/code/list/quote/link), no syntax highlighting; renders `#`/`##`/`###`, `-`/`*`, `1.`, `>`, `**`, `*`, `` ` ``, links, `---`.
+- **Goals this month** `[shipped]` — the goals placed into this month, each with a done toggle.
+- **Per-goal photos + limits** `[shipped]` — attach photos to a goal within the month (data URL today); enforced per-month limit (3 free / 25 premium) with an upgrade prompt at the ceiling.
+- **Legacy fields retained** `[shipped]` — highlights / struggles / trackers / mood / gratitude remain in the data model (import/migration) though the v7 UI folds prose into the journal.
 
 ### Goals surface
-- **Goal CRUD** `[shipped]` — title, why, category, color.
-- **Monthly breakdown** `[shipped]` — set a monthly intention/target per month for each goal.
-- **Computed progress across the year** `[planned]` — derived from month check-ins / trackers.
+- **In-calendar vs unplanned** `[shipped]` — planned goals with a month tag + done toggle; unplanned goals waiting on the board.
+- **Goal CRUD** `[shipped]` — add (on the Year board), toggle done, delete, jump to a goal's month.
+- **Computed progress across the year** `[shipped]` — done/total shown in Insights.
 
-### Look back & insights
-- **Timeline** `[shipped]` — scroll chronologically through past months (highlight + photo + mood).
-- **"This month last year"** `[shipped]` — callback to the same month a year prior.
-- **Year in Review** `[shipped]` — end-of-year montage (top photos, highlights, tracker totals, goals achieved); shareable/exportable still planned.
-- **Insights analytics** `[shipped]` — lifetime stats, mood trend, tracker bar charts, goal completion. (Not gated — ships free.)
+### Insights & look back
+- **All-time stat tiles** `[shipped]` — months journaled, goals achieved, years tracked, goals set, photos kept, words written.
+- **Goals-across-the-year bar chart** `[shipped]` — goals placed per month.
+- **Progress** `[shipped]` — done/planned bar + goal list.
+- **Look back (timeline, this-month-last-year, year-in-review)** `[shipped]` — reachable from Insights. (Not gated; ships free.)
 
-### Own-your-data, cloud & tiering
-- **JSON export / snapshot** `[shipped]` — own-your-data export from IndexedDB.
-- **Optional Supabase cloud sync** `[shipped]` — magic-link auth, whole-vault last-write-wins snapshot, plan-gated; free tier stays fully local when unconfigured.
-- **Account & sync + Pricing surfaces** `[shipped]` — free / $2-mo Cloud split (free = complete app; paid = sync + backup + cloud photos + web access).
-- **File System Access folder save** `[planned]` — save the vault to a real local folder.
-- **Cloud photo storage (Supabase Storage)** `[planned]` — move photos out of the vault snapshot into a private bucket with signed URLs.
-- **Live deploy + billing** `[planned]` — actual Supabase project + Vercel deploy + Stripe billing (handoff to Philip; needs credentials).
+### Plans & billing
+- **Free / Premium split** `[shipped]` — Free is the complete local app (all surfaces, unlimited goals/entries, 3 photos/month). Premium adds sync, Siri/agent, 25 photos/month, cloud backup + web access.
+- **Pricing surface** `[shipped]` — Premium **$6/month**, a **$3 intro for the first 3 months**, and an **occasional $3 sale**. Plan flips locally in-app to preview premium; real payment is a handoff (App Store / Play Store on mobile, Stripe on web).
+- **Plan gating** `[shipped]` — photo limit (3/25), sync gated to Premium, Siri/agent gated to Premium.
+
+### Own-your-data & sync
+- **JSON export / import** `[shipped]` — own-your-data export + import from the You surface.
+- **Cross-device sync (Premium)** `[in progress]` — target is **no-backend, client-to-cloud**: **iCloud** (iCloud Drive / key-value) on Apple, **Google Drive appData** on Android. Optional **Supabase** whole-vault last-write-wins snapshot remains the web/desktop sync path (free tier stays fully local when unconfigured).
+- **Siri & agent integration (Premium)** `[planned]` — add goals and journal entries by voice via iOS App Intents / Shortcuts (and an agent-callable interface); premium-gated.
+- **Cloud photo storage** `[planned]` — move photos out of the snapshot into object storage with signed URLs before promoting "cloud photos".
+- **Live deploy + billing** `[planned]` — real Supabase project + Vercel deploy + App Store/Play/Stripe billing (handoff to Philip; needs credentials).
 
 ### Platform & growth
-- **Responsive mobile-web** `[in progress]` — mobile bar done; installable PWA + gentle monthly nudge (local notification/reminder) planned.
+- **Responsive desktop + mobile web** `[shipped]` — one web app: bottom tabs + full-bleed on mobile, top nav + centered column on desktop.
+- **Native iOS/Android (Expo)** `[in progress]` — a real Expo React Native app sharing `packages/core` + `packages/shared`, same ocean design.
+- **Installable PWA + monthly nudge** `[planned]` — one gentle monthly reminder (local notification), no daily nags.
 - **Marketing site + live demo** `[planned]` — Vercel config + DEPLOY.md done; actual deploy is Philip's.
 - **CI / E2E** `[in progress]` — build + unit CI shipped; Playwright E2E planned.
 
@@ -130,7 +144,7 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 - **Not a daily journal or habit/streak tracker.** No daily input requirement, no streaks, no broken-streak guilt, no daily nags. The monthly cadence is intentional and non-negotiable.
 - **Not coupled to nekko-notes.** Standalone product with its own repo and app, despite the local-first overlap.
 - **Core journaling never requires a server.** AI and cloud sync are optional enhancements that degrade gracefully; the free, local-first app is the complete product.
-- **Free tier is the full app** — Insights/analytics, unlimited entries/goals/trackers, local photos, offline, JSON export, no account. Paid Cloud is reach & safety only.
+- **Free tier is the full app**: Insights/analytics, unlimited entries/goals, the monthly markdown journal, local photos (up to 3/month), offline, JSON export, no account. **Premium ($6/mo)** is reach & safety only: cross-device sync, Siri/agent, 25 photos/month, cloud backup + web access. Never a paywall on writing.
 
 ## Open Questions
 
@@ -139,5 +153,8 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 - **Photo storage at scale** — IndexedDB blobs / data URLs fine for demo; move to object storage (Supabase Storage, private bucket + signed URLs) before promoting "cloud photos".
 - **Supabase free-tier numbers** — verify at supabase.com/pricing before publishing plan copy (prior research was done without live web access).
 - **AI surfaces** — reflection prompts, month auto-summary, year-in-review draft, goal→month breakdown; all later-phase, mock-mode-friendly.
+- **Sync without a backend** — preferred path is client-to-cloud with no server: **iCloud** (iCloud Drive documents or `NSUbiquitousKeyValueStore`) on Apple and **Google Drive appData** on Android, both writing the vault snapshot to the user's own cloud. If a backend proves necessary for reliability or conflict handling, fall back to the existing Supabase snapshot path. Decision to firm up when the native app reaches sync.
+- **Siri / agent integration (Premium)** — iOS App Intents / Shortcuts for "add a goal" / "write this month"; plus an agent-callable interface. Native-only; scope the intent set when the native app lands.
+- **Photo-limit unit** — enforced **per month** (3 free / 25 premium); revisit whether a lifetime or per-year cap ever makes more sense (per-month matches the monthly ritual).
 
 <!-- Resolved questions and their decisions live in memory.md. -->

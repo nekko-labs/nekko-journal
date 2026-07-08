@@ -30,6 +30,14 @@ export interface Goal {
   unit?: string;
   /** Free-text intention/target per month — the "break it down so you remember" core. */
   monthlyTargets?: Record<MonthKey, string>;
+  /**
+   * The 1-based month (1–12) this goal is slotted into for its year — the
+   * "drag a goal onto the month where it'll happen" placement. `undefined`
+   * means it's unplanned and lives on the board. This is the primary
+   * breakdown in the consolidated design; `monthlyTargets` remains for the
+   * richer per-month intention notes.
+   */
+  plannedMonth?: number;
   status: GoalStatus;
   /** A hex color for the goal's chip across surfaces. */
   color?: string;
@@ -53,6 +61,8 @@ export interface GoalCheckin {
   note?: string;
   value?: number;
   done?: boolean;
+  /** Photos attached to this goal within the month (captioned memory of it happening). */
+  photos?: PhotoRef[];
 }
 
 export interface Month {
@@ -84,9 +94,21 @@ export interface Year {
   updatedAt: string;
 }
 
+/**
+ * App-level entitlement. `free` is the complete local-first app (all four
+ * surfaces, unlimited goals/entries, up to {@link PHOTO_LIMIT_FREE} photos per
+ * month). `premium` unlocks cross-device sync (iCloud / Google Drive), the
+ * Siri / agent integration, and up to {@link PHOTO_LIMIT_PREMIUM} photos/month.
+ */
+export type Plan = 'free' | 'premium';
+
 export interface Settings {
   theme: 'light' | 'dark';
   accent?: string;
+  /** Defaults to 'free' when absent. */
+  plan?: Plan;
+  /** Notification cadence for the single gentle monthly nudge. */
+  notify?: 'monthly' | 'off';
 }
 
 export interface Vault {
@@ -149,4 +171,32 @@ export const MOOD_LABELS = ['', 'Low', 'Meh', 'Okay', 'Good', 'Great'] as const;
 export function moodVar(mood?: number): string {
   if (!mood || mood < 1 || mood > 5) return 'var(--border)';
   return `var(--mood-${mood})`;
+}
+
+// ---------------------------------------------------------------------------
+// Goal color palette (calm ocean set) + plan / photo limits
+// ---------------------------------------------------------------------------
+
+/**
+ * The goal-chip palette from the consolidated design — a calm ocean-leaning
+ * set. New goals cycle through it so each reads as its own color across the
+ * year board, month view, and insights.
+ */
+export const GOAL_PALETTE = [
+  '#3e8fa0', '#7aa889', '#d9a55f', '#6f97b3',
+  '#cc7f6a', '#9d84b0', '#5fb0a6', '#c58aa0',
+] as const;
+
+/** Pick a palette color by index (wraps). */
+export function goalColor(index: number): string {
+  return GOAL_PALETTE[((index % GOAL_PALETTE.length) + GOAL_PALETTE.length) % GOAL_PALETTE.length];
+}
+
+/** Photos allowed per month on the free plan. */
+export const PHOTO_LIMIT_FREE = 3;
+/** Photos allowed per month on premium. */
+export const PHOTO_LIMIT_PREMIUM = 25;
+
+export function photoLimit(plan: Plan | undefined): number {
+  return plan === 'premium' ? PHOTO_LIMIT_PREMIUM : PHOTO_LIMIT_FREE;
 }

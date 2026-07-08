@@ -6,6 +6,7 @@ import {
   type Month,
   type Tracker,
   type GoalCheckin,
+  type PhotoRef,
   type MonthKey,
   parseMonthKey,
 } from '@nekko/journal-shared';
@@ -64,6 +65,7 @@ export function addGoal(
     target: goal.target,
     unit: goal.unit,
     monthlyTargets: goal.monthlyTargets ?? {},
+    plannedMonth: goal.plannedMonth,
     status: goal.status ?? 'active',
     color: goal.color,
   };
@@ -98,6 +100,26 @@ export function setMonthlyTarget(vault: Vault, year: number, goalId: string, key
   if (target.trim()) g.monthlyTargets[key] = target;
   else delete g.monthlyTargets[key];
   if (y) y.updatedAt = now();
+}
+
+/**
+ * Place a goal into the month (1–12) where it'll happen, or clear it back to
+ * the board with `month = null`. This is the drag-a-goal-onto-a-month action
+ * from the consolidated design.
+ */
+export function setGoalPlannedMonth(vault: Vault, year: number, goalId: string, month: number | null): Goal | undefined {
+  const y = vault.years[year];
+  const g = y?.goals.find((x) => x.id === goalId);
+  if (!g) return undefined;
+  if (month == null) delete g.plannedMonth;
+  else g.plannedMonth = Math.max(1, Math.min(12, month));
+  if (y) y.updatedAt = now();
+  return g;
+}
+
+/** Goals for a year placed into a given 1-based month. */
+export function goalsInMonth(vault: Vault, year: number, month: number): Goal[] {
+  return (vault.years[year]?.goals ?? []).filter((g) => g.plannedMonth === month);
 }
 
 /** All active goals for a year. */
@@ -154,6 +176,43 @@ export function updateMonth(vault: Vault, key: MonthKey, patch: Partial<Month>):
 export function setGoalCheckin(vault: Vault, key: MonthKey, goalId: string, checkin: GoalCheckin): Month {
   const m = ensureMonth(vault, key);
   m.goalCheckins[goalId] = { ...m.goalCheckins[goalId], ...checkin };
+  m.updatedAt = now();
+  return m;
+}
+
+/** Total photos kept in a month across all goal check-ins + the month gallery. */
+export function countMonthPhotos(m: Month | undefined): number {
+  if (!m) return 0;
+  const inCheckins = Object.values(m.goalCheckins).reduce((n, c) => n + (c.photos?.length ?? 0), 0);
+  return inCheckins + m.photos.length;
+}
+
+/**
+ * Attach a photo to a goal's check-in for the month. Returns the updated month,
+ * or `undefined` if the per-month photo limit for `plan` is already reached
+ * (the UI surfaces the upgrade prompt in that case).
+ */
+export function addGoalPhoto(
+  vault: Vault,
+  key: MonthKey,
+  goalId: string,
+  photo: PhotoRef,
+  limit: number,
+): Month | undefined {
+  const m = ensureMonth(vault, key);
+  if (countMonthPhotos(m) >= limit) return undefined;
+  const c = m.goalCheckins[goalId] ?? {};
+  c.photos = [...(c.photos ?? []), photo];
+  m.goalCheckins[goalId] = c;
+  m.updatedAt = now();
+  return m;
+}
+
+export function removeGoalPhoto(vault: Vault, key: MonthKey, goalId: string, photoId: string): Month | undefined {
+  const m = vault.months[key];
+  const c = m?.goalCheckins[goalId];
+  if (!m || !c?.photos) return undefined;
+  c.photos = c.photos.filter((p) => p.id !== photoId);
   m.updatedAt = now();
   return m;
 }

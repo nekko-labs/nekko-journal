@@ -1,11 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { monthKey, parseMonthKey, monthLabel, yearMonthKeys } from '@nekko/journal-shared';
+import { photoLimit } from '@nekko/journal-shared';
 import {
   createEmptyVault,
   ensureMonth,
   updateMonth,
   addGoal,
   setMonthlyTarget,
+  setGoalPlannedMonth,
+  goalsInMonth,
+  addGoalPhoto,
+  removeGoalPhoto,
+  countMonthPhotos,
   setTrackerValue,
   addTracker,
   isMonthFilled,
@@ -55,6 +61,41 @@ describe('goals + monthly breakdown', () => {
   });
 });
 
+describe('goal placement (drag onto a month)', () => {
+  it('places and clears a goal, and lists goals in a month', () => {
+    const v = createEmptyVault();
+    const g = addGoal(v, 2026, { title: 'Run a half marathon' });
+    setGoalPlannedMonth(v, 2026, g.id, 6);
+    expect(v.years[2026].goals[0].plannedMonth).toBe(6);
+    expect(goalsInMonth(v, 2026, 6).map((x) => x.id)).toEqual([g.id]);
+    // clamps out-of-range and clears back to the board
+    setGoalPlannedMonth(v, 2026, g.id, 99);
+    expect(v.years[2026].goals[0].plannedMonth).toBe(12);
+    setGoalPlannedMonth(v, 2026, g.id, null);
+    expect(v.years[2026].goals[0].plannedMonth).toBeUndefined();
+    expect(goalsInMonth(v, 2026, 6)).toHaveLength(0);
+  });
+});
+
+describe('per-month photo limits (free vs premium)', () => {
+  it('enforces the plan photo limit and supports removal', () => {
+    const v = createEmptyVault();
+    const g = addGoal(v, 2026, { title: 'Learn film photography' });
+    const limit = photoLimit('free'); // 3
+    for (let i = 0; i < limit; i++) {
+      const m = addGoalPhoto(v, '2026-04', g.id, { id: `p${i}`, src: `blob-${i}` }, limit);
+      expect(m).toBeDefined();
+    }
+    expect(countMonthPhotos(v.months['2026-04'])).toBe(limit);
+    // 4th photo on free is rejected (undefined → UI shows upgrade prompt)
+    expect(addGoalPhoto(v, '2026-04', g.id, { id: 'p3', src: 'blob-3' }, limit)).toBeUndefined();
+    // premium raises the ceiling
+    expect(addGoalPhoto(v, '2026-04', g.id, { id: 'p3', src: 'blob-3' }, photoLimit('premium'))).toBeDefined();
+    removeGoalPhoto(v, '2026-04', g.id, 'p3');
+    expect(countMonthPhotos(v.months['2026-04'])).toBe(limit);
+  });
+});
+
 describe('frontmatter round-trip', () => {
   it('serializes and parses a month losslessly', () => {
     const v = createEmptyVault();
@@ -98,8 +139,14 @@ describe('seeded demo vault', () => {
 
   it('is alive on first run', () => {
     expect(Object.keys(v.months).length).toBeGreaterThan(0);
-    expect(v.years[2026].goals.length).toBe(3);
-    expect(v.years[2026].theme).toBe('Build & breathe');
+    expect(v.years[2026].goals.length).toBeGreaterThanOrEqual(5);
+    expect(v.years[2026].theme).toBe('Rooted');
+    // Goals are placed into the months where they happen (drag-to-plan model),
+    // and a couple sit unplanned on the board.
+    const placed = v.years[2026].goals.filter((g) => g.plannedMonth != null);
+    const board = v.years[2026].goals.filter((g) => g.plannedMonth == null);
+    expect(placed.length).toBeGreaterThan(0);
+    expect(board.length).toBeGreaterThan(0);
   });
 
   it('supports this-month-last-year lookback', () => {
@@ -111,7 +158,6 @@ describe('seeded demo vault', () => {
   it('builds a year in review', () => {
     const review = buildYearInReview(v, 2026);
     expect(review.monthsJournaled).toBeGreaterThanOrEqual(3);
-    expect(review.highlights.length).toBeGreaterThan(0);
     expect(review.trackerTotals.length).toBeGreaterThan(0);
   });
 });
@@ -131,14 +177,13 @@ describe('multi-year + lifetime analytics', () => {
     const strip = buildYearStrip(v, 2026);
     expect(strip.months).toHaveLength(12);
     expect(strip.monthsJournaled).toBeGreaterThanOrEqual(3);
-    expect(strip.theme).toBe('Build & breathe');
+    expect(strip.theme).toBe('Rooted');
   });
 
   it('computes lifetime stats including a consecutive run', () => {
     const life = lifetimeStats(v);
     expect(life.monthsJournaled).toBeGreaterThanOrEqual(4);
-    expect(life.totalHighlights).toBeGreaterThan(0);
-    expect(life.longestRun).toBeGreaterThanOrEqual(2); // Jan→Feb are consecutive
+    expect(life.longestRun).toBeGreaterThanOrEqual(2); // Mar→Jun are consecutive
     expect(life.yearsTracked).toBeGreaterThanOrEqual(2);
   });
 

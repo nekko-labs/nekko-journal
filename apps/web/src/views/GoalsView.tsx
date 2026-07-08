@@ -1,152 +1,107 @@
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Check, RotateCcw } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import {
+  type Goal,
   MONTH_ABBR,
   monthKey,
-  addGoal,
   updateGoal,
   removeGoal,
-  setMonthlyTarget,
-  type Goal,
 } from '@nekko/journal-core';
 import { useVault } from '../state/store';
-import { PageHeader } from '../components/ui';
 
-const COLORS = ['#7c83ff', '#34d399', '#60a5fa', '#f59e0b', '#ff7a59', '#ec4899', '#a78bfa'];
-const NO_GOALS: Goal[] = []; // stable ref so the year-goals selector never loops
-
-function GoalCard({ goal }: { goal: Goal }) {
-  const mutate = useVault((s) => s.mutate);
-  const navigate = useNavigate();
-  const done = goal.status === 'done';
-  return (
-    <div className="card p-5">
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <div className="flex flex-1 items-start gap-2.5">
-          <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: goal.color ?? 'var(--accent)' }} aria-hidden />
-          <div className="flex-1">
-          <input
-            className={`serif w-full bg-transparent text-lg font-semibold outline-none ${done ? 'line-through opacity-60' : ''}`}
-            value={goal.title}
-            onChange={(e) => mutate((v) => updateGoal(v, goal.year, goal.id, { title: e.target.value }))}
-          />
-          <input
-            className="mt-0.5 w-full bg-transparent text-sm italic outline-none"
-            style={{ color: 'var(--text-soft)' }}
-            placeholder="why does this matter?"
-            value={goal.why ?? ''}
-            onChange={(e) => mutate((v) => updateGoal(v, goal.year, goal.id, { why: e.target.value }))}
-          />
-          </div>
-        </div>
-        <div className="flex shrink-0 gap-1.5">
-          <button
-            className="btn !px-2 !py-1.5"
-            title={done ? 'Reopen' : 'Mark done'}
-            onClick={() => mutate((v) => updateGoal(v, goal.year, goal.id, { status: done ? 'active' : 'done' }))}
-            style={done ? { background: 'var(--success)', color: 'white', borderColor: 'var(--success)' } : undefined}
-          >
-            {done ? <RotateCcw size={15} /> : <Check size={15} />}
-          </button>
-          <button
-            className="btn !px-2 !py-1.5"
-            title="Delete goal"
-            onClick={() => { if (confirm(`Delete "${goal.title}"? Its monthly plans will be removed too. This can't be undone.`)) mutate((v) => removeGoal(v, goal.year, goal.id)); }}
-          >
-            <Trash2 size={15} />
-          </button>
-        </div>
-      </div>
-
-      <div className="mb-3 flex items-center gap-1.5">
-        {COLORS.map((c) => (
-          <button
-            key={c}
-            onClick={() => mutate((v) => updateGoal(v, goal.year, goal.id, { color: c }))}
-            className="h-4 w-4 rounded-full transition"
-            style={{ background: c, outline: goal.color === c ? '2px solid var(--text)' : 'none', outlineOffset: 1 }}
-            aria-label={`Color ${c}`}
-          />
-        ))}
-      </div>
-
-      <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>Break it down by month</div>
-      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-        {Array.from({ length: 12 }, (_, i) => {
-          const key = monthKey(goal.year, i + 1);
-          return (
-            <div key={key} className="flex items-center gap-1.5 rounded-lg px-2 py-1" style={{ background: 'var(--surface-2)' }}>
-              <button
-                className="serif text-xs font-semibold hover:underline"
-                style={{ color: 'var(--text-soft)' }}
-                onClick={() => navigate(`/month/${key}`)}
-              >
-                {MONTH_ABBR[i]}
-              </button>
-              <input
-                className="w-full bg-transparent text-xs outline-none"
-                placeholder="—"
-                value={goal.monthlyTargets?.[key] ?? ''}
-                onChange={(e) => mutate((v) => setMonthlyTarget(v, goal.year, goal.id, key, e.target.value))}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+const EMPTY_GOALS: Goal[] = [];
 
 export default function GoalsView() {
-  const { year: yearParam } = useParams();
-  const currentYear = useVault((s) => s.currentYear);
-  const year = Number(yearParam) || currentYear;
   const navigate = useNavigate();
-  const goals = useVault((s) => s.vault!.years[year]?.goals) ?? NO_GOALS;
+  const { year: yearParam } = useParams();
+  const vault = useVault((s) => s.vault)!;
+  const currentYear = useVault((s) => s.currentYear);
   const mutate = useVault((s) => s.mutate);
-  const [title, setTitle] = useState('');
+  const year = Number(yearParam) || currentYear;
 
-  const add = () => {
-    const t = title.trim();
-    if (!t) return;
-    mutate((v) => addGoal(v, year, { title: t, color: COLORS[goals.length % COLORS.length] }));
-    setTitle('');
+  const goals = vault.years[year]?.goals ?? EMPTY_GOALS;
+  const planned = goals.filter((g) => g.plannedMonth != null);
+  const unplanned = goals.filter((g) => g.plannedMonth == null);
+
+  const toggleDone = (g: Goal) => mutate((v) => updateGoal(v, year, g.id, { status: g.status === 'done' ? 'active' : 'done' }));
+  const del = (g: Goal) => mutate((v) => removeGoal(v, year, g.id));
+
+  const Row = ({ g, first }: { g: Goal; first: boolean }) => {
+    const done = g.status === 'done';
+    return (
+      <div
+        className="group flex items-center gap-3 py-3.5"
+        style={{ borderTop: first ? 'none' : '1px solid var(--border)' }}
+      >
+        <span className="h-[11px] w-[11px] shrink-0 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
+        <span className="flex-1 text-[15px]" style={{ color: 'var(--text)', textDecoration: done ? 'line-through' : 'none', opacity: done ? 0.55 : 1 }}>{g.title}</span>
+        {g.plannedMonth != null ? (
+          <button
+            onClick={() => navigate(`/month/${monthKey(year, g.plannedMonth!)}`)}
+            className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+            style={{ color: 'var(--accent)', background: 'var(--accent-soft)' }}
+          >
+            {MONTH_ABBR[g.plannedMonth - 1]}
+          </button>
+        ) : (
+          <span className="text-[11px]" style={{ color: 'var(--text-faint)' }}>on the board</span>
+        )}
+        <button
+          onClick={() => toggleDone(g)}
+          className="grid h-[26px] w-[26px] place-items-center rounded-full transition active:scale-95"
+          style={{
+            border: done ? '1px solid var(--success)' : '1px solid var(--border)',
+            background: done ? 'var(--success)' : 'transparent',
+            color: done ? '#fff' : 'var(--text-faint)',
+          }}
+          aria-label={done ? 'Mark active' : 'Mark done'}
+        >
+          <Check size={13} strokeWidth={2.6} />
+        </button>
+        <button
+          onClick={() => del(g)}
+          className="opacity-0 transition group-hover:opacity-100"
+          style={{ color: 'var(--text-faint)' }}
+          aria-label="Delete goal"
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
+    );
   };
 
   return (
-    <div className="mx-auto max-w-3xl p-6 md:p-8">
-      <PageHeader
-        title={
-          <span className="flex items-center gap-3">
-            <button className="btn !px-2" onClick={() => navigate(`/goals/${year - 1}`)} aria-label="Previous year"><ChevronLeft size={18} /></button>
-            Goals · {year}
-            <button className="btn !px-2" onClick={() => navigate(`/goals/${year + 1}`)} aria-label="Next year"><ChevronRight size={18} /></button>
-          </span>
-        }
-        subtitle="Set the year, then plan each goal month by month so it actually happens."
-      />
+    <div className="animate-rise">
+      <h1 className="serif mb-1.5 mt-1.5 text-3xl font-semibold tracking-tight">Goals · {year}</h1>
+      <p className="mb-6 text-[13.5px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>
+        Every goal for the year, planned into a month or waiting on the board.
+      </p>
 
-      <div className="mb-5 flex gap-2">
-        <input
-          className="input"
-          placeholder="A goal for the year — e.g. “Run a half marathon”"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && add()}
-        />
-        <button className="btn btn-primary shrink-0" onClick={add}><Plus size={16} /> Add goal</button>
-      </div>
-
-      {goals.length === 0 ? (
-        <div className="card p-10 text-center" style={{ color: 'var(--text-faint)' }}>
-          <p className="serif text-xl">No goals yet for {year}.</p>
-          <p className="mt-1 text-sm">Add a few above — the magic is breaking them into months.</p>
-        </div>
+      <div className="mb-3.5 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>In the calendar</div>
+      {planned.length === 0 ? (
+        <p className="text-sm italic" style={{ color: 'var(--text-faint)' }}>
+          Nothing planned yet. Drag goals onto months from the{' '}
+          <button onClick={() => navigate(`/year/${year}`)} className="underline" style={{ color: 'var(--accent)' }}>year board</button>.
+        </p>
       ) : (
-        <div className="space-y-4">
-          {goals.map((g) => <GoalCard key={g.id} goal={g} />)}
+        <div className="flex flex-col">
+          {planned
+            .slice()
+            .sort((a, b) => (a.plannedMonth ?? 0) - (b.plannedMonth ?? 0))
+            .map((g, i) => <Row key={g.id} g={g} first={i === 0} />)}
         </div>
+      )}
+
+      {unplanned.length > 0 && (
+        <>
+          <div className="mb-3.5 mt-7 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>Unplanned</div>
+          <div className="flex flex-col">
+            {unplanned.map((g, i) => <Row key={g.id} g={g} first={i === 0} />)}
+          </div>
+          <p className="mt-4 text-[12px] italic" style={{ color: 'var(--text-faint)' }}>
+            Open the <button onClick={() => navigate(`/year/${year}`)} className="underline" style={{ color: 'var(--accent)' }}>year board</button> and drag these onto the months where they'll happen.
+          </p>
+        </>
       )}
     </div>
   );

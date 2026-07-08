@@ -1,168 +1,327 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Target, Camera, Star, Pencil } from 'lucide-react';
+import { useState, type CSSProperties, type DragEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ChevronRight, Plus } from 'lucide-react';
 import {
-  MONTH_NAMES,
-  MONTH_ABBR,
-  MOOD_EMOJI,
-  moodVar,
-  monthKey,
-  yearMonthKeys,
-  isMonthFilled,
-  type Month,
   type Goal,
+  MONTH_NAMES,
+  monthKey,
+  goalColor,
+  addGoal as addGoalCore,
+  updateGoal,
+  setGoalPlannedMonth,
+  setYearTheme,
 } from '@nekko/journal-core';
 import { useVault } from '../state/store';
-import { PageHeader } from '../components/ui';
 
-const NO_GOALS: Goal[] = []; // stable ref so the year-goals selector never loops
+const EMPTY_GOALS: Goal[] = [];
+type Zoom = 'years' | 'grid' | 'list';
+const ZOOM_ORDER: Zoom[] = ['years', 'grid', 'list'];
 
-function MonthCell({ year, month, isCurrent }: { year: number; month: number; isCurrent: boolean }) {
-  const key = monthKey(year, month);
-  const m = useVault((s) => s.vault!.months[key]) as Month | undefined;
+export default function YearView() {
   const navigate = useNavigate();
-  const filled = isMonthFilled(m);
-  const photo = m?.photos[0];
-
-  return (
-    <button
-      onClick={() => navigate(`/month/${key}`)}
-      className="card group relative flex h-56 flex-col overflow-hidden p-0 text-left transition-all duration-300 hover:-translate-y-1"
-      style={{
-        borderColor: isCurrent ? 'var(--accent)' : 'var(--border)',
-        boxShadow: isCurrent ? '0 0 0 1px var(--accent), var(--shadow-soft)' : undefined,
-        transitionTimingFunction: 'var(--ease-out-quint)',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = 'var(--shadow-lift)')}
-      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = isCurrent ? '0 0 0 1px var(--accent), var(--shadow-soft)' : '')}
-    >
-      {/* mood color stripe along the top */}
-      <div className="h-1.5 w-full shrink-0" style={{ background: filled ? moodVar(m?.mood) : 'transparent' }} />
-
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="serif text-xl font-semibold">{MONTH_NAMES[month - 1]}</span>
-            {isCurrent && <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>now</span>}
-          </div>
-          {m?.mood ? <span className="text-2xl leading-none">{MOOD_EMOJI[m.mood]}</span> : null}
-        </div>
-
-        {filled ? (
-          <>
-            <div className="mt-2.5 flex flex-1 gap-3 overflow-hidden">
-              <ul className="flex-1 space-y-1">
-                {m!.highlights.slice(0, 2).map((h, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-sm leading-snug" style={{ color: 'var(--text-soft)' }}>
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full" style={{ background: moodVar(m?.mood) }} />
-                    <span className="line-clamp-2">{h}</span>
-                  </li>
-                ))}
-                {m!.highlights.length === 0 && (
-                  <li className="line-clamp-3 text-sm leading-snug" style={{ color: 'var(--text-soft)' }}>{m!.reflection.slice(0, 100)}</li>
-                )}
-              </ul>
-              {photo && (
-                <img src={photo.src} alt="" className="h-16 w-16 shrink-0 rounded-xl object-cover" />
-              )}
-            </div>
-            <div className="mt-2 flex items-center gap-3 text-xs" style={{ color: 'var(--text-faint)' }}>
-              {m!.highlights.length > 0 && <span className="flex items-center gap-1"><Star size={11} /> {m!.highlights.length}</span>}
-              {m!.photos.length > 0 && <span className="flex items-center gap-1"><Camera size={11} /> {m!.photos.length}</span>}
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-1 flex-col items-start justify-end" style={{ color: 'var(--text-faint)' }}>
-            <span className="flex items-center gap-1.5 text-sm transition-opacity duration-200 group-hover:text-[color:var(--accent)]">
-              <Pencil size={14} /> Reflect on {MONTH_ABBR[month - 1]}
-            </span>
-          </div>
-        )}
-      </div>
-    </button>
-  );
-}
-
-function ThemeWord({ year }: { year: number }) {
-  const theme = useVault((s) => s.vault!.years[year]?.theme ?? '');
+  const { year: yearParam } = useParams();
+  const vault = useVault((s) => s.vault)!;
+  const currentYear = useVault((s) => s.currentYear);
+  const currentMonth = useVault((s) => s.currentMonth);
   const mutate = useVault((s) => s.mutate);
-  return (
-    <input
-      className="serif w-full bg-transparent text-center text-xl italic outline-none placeholder:not-italic"
-      style={{ color: 'var(--text)' }}
-      value={theme}
-      placeholder="a word for the year…"
-      onChange={(e) => mutate((v) => { (v.years[year] ??= { year, goals: [], createdAt: '', updatedAt: '' }).theme = e.target.value; })}
-    />
-  );
-}
 
-function GoalsPanel({ year }: { year: number }) {
-  const goals = useVault((s) => s.vault!.years[year]?.goals) ?? NO_GOALS;
-  const active = goals.filter((g) => g.status !== 'dropped');
+  const year = Number(yearParam) || currentYear;
+  const yearObj = vault.years[year];
+  const goals = yearObj?.goals ?? EMPTY_GOALS;
+  const themeWord = yearObj?.theme ?? '';
+
+  const [zoom, setZoom] = useState<Zoom>('grid');
+  const [zoomDir, setZoomDir] = useState<'in' | 'out'>('in');
+  const [draft, setDraft] = useState('');
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overMonth, setOverMonth] = useState<number | null>(null);
+  const dragActive = dragId != null;
+
+  const changeZoom = (z: Zoom) => {
+    setZoomDir(ZOOM_ORDER.indexOf(z) > ZOOM_ORDER.indexOf(zoom) ? 'in' : 'out');
+    setZoom(z);
+  };
+  const onWheel = (e: React.WheelEvent) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const i = ZOOM_ORDER.indexOf(zoom);
+    const next = Math.max(0, Math.min(ZOOM_ORDER.length - 1, i + (e.deltaY < 0 ? -1 : 1)));
+    if (ZOOM_ORDER[next] !== zoom) changeZoom(ZOOM_ORDER[next]);
+  };
+
+  const openMonth = (m: number) => navigate(`/month/${monthKey(year, m)}`);
+  const isCurrent = (m: number) => year === currentYear && m === currentMonth;
+
+  const addGoal = () => {
+    const t = draft.trim();
+    if (!t) return;
+    mutate((v) => addGoalCore(v, year, { title: t, color: goalColor(goals.length), metricKind: 'milestone' }));
+    setDraft('');
+  };
+  const place = (id: string, month: number | null) => mutate((v) => setGoalPlannedMonth(v, year, id, month));
+  const toggleDone = (g: Goal) => mutate((v) => updateGoal(v, year, g.id, { status: g.status === 'done' ? 'active' : 'done' }));
+
+  // ── drag & drop ──
+  const onDragStart = (id: string) => (e: DragEvent) => {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', id); } catch { /* ignore */ }
+  };
+  const onDragEnd = () => { setDragId(null); setOverMonth(null); };
+  const allowDrop = (e: DragEvent) => e.preventDefault();
+  const dropOnMonth = (m: number) => (e: DragEvent) => { e.preventDefault(); if (dragId) place(dragId, m); onDragEnd(); };
+  const dropOnTray = (e: DragEvent) => { e.preventDefault(); if (dragId) place(dragId, null); onDragEnd(); };
+
+  const zoomClass = zoomDir === 'out' ? 'animate-zoom-out' : 'animate-zoom-in';
+
   return (
-    <div className="card p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-soft)' }}>
-          <Target size={15} /> Goals for {year}
-        </h2>
-        <Link to={`/goals/${year}`} className="text-xs font-medium" style={{ color: 'var(--accent)' }}>Manage →</Link>
-      </div>
-      {active.length === 0 ? (
-        <p className="text-sm italic" style={{ color: 'var(--text-faint)' }}>No goals yet. <Link to={`/goals/${year}`} className="underline">Set a few →</Link></p>
-      ) : (
-        <ul className="space-y-2.5">
-          {active.map((g) => (
-            <li key={g.id} className="flex items-center gap-2.5">
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
-              <span className={`flex-1 text-sm ${g.status === 'done' ? 'line-through opacity-60' : ''}`}>{g.title}</span>
-              {g.status === 'done' && <span className="text-xs" style={{ color: 'var(--text-faint)' }}>done</span>}
-            </li>
+    <div onWheel={onWheel}>
+      {/* zoom control */}
+      <div className="flex justify-center pb-3 pt-1">
+        <div className="inline-flex gap-0.5 rounded-full p-1" style={{ background: 'var(--surface-2)' }}>
+          {ZOOM_ORDER.map((z) => (
+            <button
+              key={z}
+              onClick={() => changeZoom(z)}
+              className="rounded-full px-3.5 py-1 text-xs font-semibold transition"
+              style={{
+                background: zoom === z ? 'var(--surface)' : 'transparent',
+                color: zoom === z ? 'var(--text)' : 'var(--text-faint)',
+                boxShadow: zoom === z ? 'var(--shadow-soft)' : 'none',
+              }}
+            >
+              {z === 'years' ? 'Years' : z === 'grid' ? 'Year' : 'Timeline'}
+            </button>
           ))}
-        </ul>
+        </div>
+      </div>
+
+      {zoom === 'years' && <YearsOverview key={`years-${year}`} className={zoomClass} />}
+
+      {zoom === 'grid' && (
+        <div key={`grid-${year}`} className={zoomClass}>
+          {/* year header + editable theme word */}
+          <div className="pb-6 text-center">
+            <div className="serif text-3xl font-semibold tracking-tight">{year}</div>
+            <input
+              value={themeWord}
+              onChange={(e) => mutate((v) => setYearTheme(v, year, e.target.value))}
+              placeholder="a word for the year"
+              className="serif mt-1 w-full bg-transparent text-center text-[15px] italic outline-none"
+              style={{ color: 'var(--text-soft)' }}
+            />
+          </div>
+
+          {/* two-column month grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {MONTH_NAMES.map((name, i) => {
+              const month = i + 1;
+              const mg = goals.filter((g) => g.plannedMonth === month);
+              const over = overMonth === month;
+              const cellStyle: CSSProperties = {
+                borderRadius: 16,
+                padding: '10px 8px 11px',
+                minHeight: 92,
+                background: over ? 'var(--accent-soft)' : dragActive ? 'var(--surface-2)' : 'transparent',
+                border: over
+                  ? '1.5px solid var(--accent)'
+                  : dragActive
+                    ? '1.5px dashed var(--border)'
+                    : '1.5px solid transparent',
+                transition: 'background .18s, border-color .18s',
+              };
+              return (
+                <div
+                  key={month}
+                  style={cellStyle}
+                  onDragOver={allowDrop}
+                  onDrop={dropOnMonth(month)}
+                  onDragEnter={() => dragActive && setOverMonth(month)}
+                >
+                  <button
+                    onClick={() => openMonth(month)}
+                    className="flex w-full items-center justify-between px-0.5 pb-2 transition hover:opacity-70"
+                  >
+                    <span className="serif text-[19px] font-semibold" style={{ color: 'var(--text)' }}>{name}</span>
+                    <ChevronRight size={17} style={{ color: 'var(--text-faint)' }} />
+                  </button>
+                  {isCurrent(month) && (
+                    <span className="block px-0.5 pb-1.5 text-[9px] font-bold uppercase tracking-[1.2px]" style={{ color: 'var(--accent)' }}>this month</span>
+                  )}
+                  <div className="flex flex-wrap gap-1.5 px-0.5">
+                    {mg.map((g) => (
+                      <GoalChip key={g.id} goal={g} onDragStart={onDragStart(g.id)} onDragEnd={onDragEnd} />
+                    ))}
+                    {mg.length === 0 && (
+                      <span className="py-0.5 text-[11.5px] italic" style={{ color: 'var(--text-faint)' }}>＋ drop a goal</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* yearly goals: draggable list + inline add + drop-back tray */}
+          <div className="mt-9" onDragOver={allowDrop} onDrop={dropOnTray}>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>Goals for {year}</span>
+              <button onClick={() => navigate(`/goals/${year}`)} className="text-[12.5px] font-semibold" style={{ color: 'var(--accent)' }}>Manage →</button>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {goals.map((g) => (
+                <div
+                  key={g.id}
+                  draggable
+                  onDragStart={onDragStart(g.id)}
+                  onDragEnd={onDragEnd}
+                  title="Drag into a month"
+                  className="-mx-2 flex cursor-grab items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-[var(--surface-2)]"
+                >
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
+                  <span
+                    className="flex-1 text-[14.5px]"
+                    style={{ color: 'var(--text)', textDecoration: g.status === 'done' ? 'line-through' : 'none', opacity: g.status === 'done' ? 0.5 : 1 }}
+                  >
+                    {g.title}
+                  </span>
+                  <button
+                    onClick={() => toggleDone(g)}
+                    className="text-[11px]"
+                    style={{ color: 'var(--text-faint)' }}
+                    title="Toggle done"
+                  >
+                    {g.status === 'done' ? 'done' : g.plannedMonth ? MONTH_NAMES[g.plannedMonth - 1].slice(0, 3) : 'on the board'}
+                  </button>
+                </div>
+              ))}
+              <div className="flex items-center gap-3 pb-0.5 pt-2.5">
+                <button
+                  onClick={addGoal}
+                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                  style={{ border: '1.5px dashed var(--border)', color: 'var(--text-faint)' }}
+                  aria-label="Add goal"
+                >
+                  <Plus size={12} strokeWidth={2.6} />
+                </button>
+                <input
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addGoal()}
+                  placeholder="Add a goal for the year…"
+                  className="flex-1 bg-transparent text-[14.5px] outline-none"
+                  style={{ color: 'var(--text)' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
+
+      {zoom === 'list' && (
+        <div key={`list-${year}`} className={zoomClass}>
+          <div className="serif mb-3 text-center text-[32px] font-semibold tracking-tight">{year}</div>
+          <div className="flex flex-col">
+            {MONTH_NAMES.map((name, i) => {
+              const month = i + 1;
+              const mg = goals.filter((g) => g.plannedMonth === month);
+              return (
+                <button
+                  key={month}
+                  onClick={() => openMonth(month)}
+                  className="-mx-2 rounded-2xl px-2 py-4 text-left transition hover:bg-[var(--surface-2)]"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="serif text-2xl font-semibold" style={{ color: 'var(--text)' }}>{name}</span>
+                    <ChevronRight size={18} style={{ color: 'var(--text-faint)' }} />
+                  </div>
+                  {isCurrent(month) && (
+                    <span className="mt-0.5 block text-[9px] font-bold uppercase tracking-[1.2px]" style={{ color: 'var(--accent)' }}>this month</span>
+                  )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {mg.map((g) => (
+                      <span key={g.id} className="inline-flex items-center gap-2 rounded-full px-3 py-1.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                        <span className="h-2 w-2 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
+                        <span className="text-[12.5px] font-medium" style={{ color: 'var(--text)', textDecoration: g.status === 'done' ? 'line-through' : 'none', opacity: g.status === 'done' ? 0.6 : 1 }}>{g.title}</span>
+                      </span>
+                    ))}
+                    {mg.length === 0 && <span className="text-[13px] italic" style={{ color: 'var(--text-faint)' }}>nothing planned</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <p className="mt-8 text-center text-[11px]" style={{ color: 'var(--text-faint)' }}>
+        Tip: ctrl + scroll to zoom Years ⇄ Year ⇄ Timeline · drag a goal onto a month to plan it
+      </p>
     </div>
   );
 }
 
-export default function YearView() {
-  const { year: yearParam } = useParams();
-  const currentYear = useVault((s) => s.currentYear);
-  const year = Number(yearParam) || currentYear;
+function GoalChip({ goal, onDragStart, onDragEnd }: { goal: Goal; onDragStart: (e: DragEvent) => void; onDragEnd: () => void }) {
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      title={goal.title}
+      className="inline-flex max-w-[130px] shrink-0 cursor-grab items-center gap-1.5 py-0.5"
+    >
+      <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: goal.color ?? 'var(--accent)' }} />
+      <span
+        className="truncate text-[12.5px] font-medium"
+        style={{ color: 'var(--text)', textDecoration: goal.status === 'done' ? 'line-through' : 'none', opacity: goal.status === 'done' ? 0.6 : 1 }}
+      >
+        {goal.title}
+      </span>
+    </div>
+  );
+}
+
+// ── Years overview (multi-year placement strips) ──
+function YearsOverview({ className }: { className?: string }) {
   const navigate = useNavigate();
-  const months = useVault((s) => s.vault!.months);
-  const journaled = yearMonthKeys(year).filter((k) => isMonthFilled(months[k])).length;
-  const currentMonth = year === currentYear ? 6 : 0; // demo "current" month is June
+  const vault = useVault((s) => s.vault)!;
+  const currentYear = useVault((s) => s.currentYear);
+
+  const present = Object.keys(vault.years).map(Number);
+  const years = Array.from(new Set([currentYear + 1, currentYear, ...present])).sort((a, b) => b - a);
 
   return (
-    <div className="mx-auto max-w-6xl p-6 md:p-8">
-      <PageHeader
-        title={
-          <span className="flex items-center gap-3">
-            <button className="btn !px-2.5" onClick={() => navigate(`/year/${year - 1}`)} aria-label="Previous year"><ChevronLeft size={18} /></button>
-            {year}
-            <button className="btn !px-2.5" onClick={() => navigate(`/year/${year + 1}`)} aria-label="Next year"><ChevronRight size={18} /></button>
-          </span>
-        }
-        subtitle={`${journaled} of 12 months journaled · daily is too much, a year too long`}
-        right={
-          <Link to="/years" className="btn">All years →</Link>
-        }
-      />
-
-      <div className="mb-6 card px-5 py-4">
-        <div className="text-center text-xs uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>Theme of the year</div>
-        <ThemeWord year={year} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className="animate-rise" style={{ animationDelay: `${i * 18}ms` }}>
-              <MonthCell year={year} month={i + 1} isCurrent={i + 1 === currentMonth} />
-            </div>
-          ))}
-        </div>
-        <GoalsPanel year={year} />
+    <div className={className}>
+      <div className="mb-3.5 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>Your years</div>
+      <div className="flex flex-col gap-1.5">
+        {years.map((y) => {
+          const yearObj = vault.years[y];
+          const goals = yearObj?.goals ?? [];
+          const placed = goals.filter((g) => g.plannedMonth != null).length;
+          return (
+            <button
+              key={y}
+              onClick={() => navigate(`/year/${y}`)}
+              className="-mx-2 rounded-xl px-2 py-4 text-left transition hover:bg-[var(--surface-2)]"
+            >
+              <div className="mb-3 flex items-baseline justify-between">
+                <span
+                  className="serif text-[26px] font-semibold tracking-tight"
+                  style={{ color: y === currentYear ? 'var(--text)' : 'var(--text-soft)' }}
+                >
+                  {y}
+                </span>
+                <span className="serif text-sm italic" style={{ color: 'var(--text-soft)' }}>{yearObj?.theme ?? 'the year ahead'}</span>
+              </div>
+              <div className="flex gap-[3px]">
+                {Array.from({ length: 12 }, (_, k) => {
+                  const filled = goals.some((g) => g.plannedMonth === k + 1);
+                  return <div key={k} className="h-2.5 flex-1 rounded-[3px]" style={{ background: filled ? 'var(--accent)' : 'var(--surface-2)', opacity: filled ? 0.9 : 1 }} />;
+                })}
+              </div>
+              <div className="mt-2 text-[11.5px]" style={{ color: 'var(--text-faint)' }}>{placed ? `${placed} goals` : '—'}</div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
