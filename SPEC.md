@@ -131,6 +131,7 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 
 ### Platform & growth
 - **Responsive desktop + mobile web** `[shipped]` — one web app: bottom tabs + full-bleed on mobile, top nav + centered column on desktop.
+- **Marketing site** `[shipped]` — a self-contained static landing page (`apps/site/`) in the app's ocean design: mood-grid hero, feature grid, the free/premium split, and a live-demo CTA. Deploy to Vercel + the real demo URL is a handoff to Philip.
 - **Native iOS/Android (Expo)** `[in progress]` — a real Expo React Native app sharing `packages/core` + `packages/shared`, same ocean design.
 - **Installable PWA** `[shipped]` — web app manifest + maskable icon + offline service worker (runtime cache, shell fallback), so Nekko installs to the home screen and works offline.
 - **Gentle monthly nudge** `[shipped]` — at most one calendar-month reminder (Web Notification), and only if the current month isn't journaled yet; tapping it opens that month. Opt-in from You; no daily nags, no streaks.

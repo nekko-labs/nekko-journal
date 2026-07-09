@@ -178,7 +178,7 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 ## Backlog / Planned
 
 ### Phase 3 — Polish & platform (remaining)
-- [ ] **T15** — Marketing site + live demo deployed (Vercel) — Vercel config + DEPLOY.md done; actual deploy is Philip's. · Added: 2026-06-29 · [spec](SPEC.md#platform--growth)
+- [~] **T15** — Marketing site **built** (`apps/site/index.html`, self-contained, ocean design, responsive + light/dark, mood-grid hero, features + pricing + demo CTA). Actual Vercel deploy + demo URL is Philip's handoff (see `apps/site/README.md`). · Added: 2026-06-29 · [spec](SPEC.md#platform--growth)
 
 ### Phase 3c — Cloud, hosting & tiering (handoff)
 - [ ] **T_cloud_handoff** — Actual Supabase project + Vercel deploy + Stripe billing — handoff to Philip (needs account credentials). Includes moving photos from data URLs to Supabase Storage (private bucket + signed URLs) before promoting "cloud photos". · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
