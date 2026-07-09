@@ -174,7 +174,6 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 - [ ] **T22** — Cross-device sync (Premium): no-backend iCloud (Apple) + Google Drive appData (Android) vault-snapshot sync; Supabase snapshot stays the web path. · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T23** — Siri / agent integration (Premium): iOS App Intents / Shortcuts + agent-callable "add goal" / "write this month". · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T24** — Real billing: App Store / Play Store IAP + Stripe (web) flipping the `plan` entitlement; the in-app toggle is a preview only. Handoff to Philip. · Added: 2026-07-09 · [spec](SPEC.md#plans--billing)
-- [ ] **T14** — Responsive mobile-web (mobile bar done) → installable PWA + gentle monthly nudge (local notification / reminder). · Added: 2026-06-29 · [spec](SPEC.md#platform--growth)
 - [ ] **T16** — CI: Playwright E2E (build + unit CI already done via PR #1). · Added: 2026-06-29
 
 ## Backlog / Planned
@@ -228,6 +227,9 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4e — Installable PWA + monthly nudge (2026-07-09)
+- [x] **T14** — PWA: `manifest.webmanifest` + maskable `icon.svg` + offline `sw.js` (runtime stale-while-revalidate cache, navigation shell fallback), registered in `main.tsx` (production only). Ocean theme-color (light/dark). Gentle monthly nudge (`lib/nudge.ts`): at most one Web Notification per calendar month, only when the current month isn't journaled; opt-in from You (requests permission); tapping opens that month. · Done: 2026-07-09 · [spec](SPEC.md#platform--growth)
 
 ### Phase 4d — Goal progress + tracker management (2026-07-09)
 - [x] **T9b** — Computed goal progress: core `goalProgress` (number goals accumulate monthly check-in `value`s toward target; milestone/boolean are done-or-not) + `yearGoalsProgress` aggregate. Insights progress bar uses averaged fraction; per-goal number progress bars show value/target. 5 new Vitest. · Done: 2026-07-09 · [spec](SPEC.md#goals-surface)

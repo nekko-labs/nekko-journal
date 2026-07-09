@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { Calendar, Target, BarChart3, User, Sparkles } from 'lucide-react';
 import { useVault } from './state/store';
 import { useCloud } from './state/cloud';
+import { runMonthlyNudge } from './lib/nudge';
 import OnboardingView, { ONBOARD_KEY } from './views/OnboardingView';
 import YearView from './views/YearView';
 import MonthView from './views/MonthView';
@@ -112,7 +113,11 @@ export default function App() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    void load().then(() => initCloud());
+    void load().then(() => {
+      initCloud();
+      const v = useVault.getState().vault;
+      if (v) runMonthlyNudge(v);
+    });
   }, [load, initCloud]);
 
   if (!loaded) {

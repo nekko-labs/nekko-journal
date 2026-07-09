@@ -3,6 +3,7 @@ import { Sun, Moon, ChevronRight, Sparkles, Cloud, Bell, Download, Upload, Rotat
 import { isMonthFilled } from '@nekko/journal-core';
 import { useVault } from '../state/store';
 import { useCloud } from '../state/cloud';
+import { enableMonthlyNudge, notifyPermission } from '../lib/nudge';
 
 export default function YouView() {
   const navigate = useNavigate();
@@ -74,6 +75,18 @@ export default function YouView() {
     if (res?.loaded) alert('Opened the journal saved in that folder.');
   };
 
+  const onToggleNudge = async () => {
+    if (notify === 'monthly') {
+      mutate((v) => { v.settings.notify = 'off'; });
+      return;
+    }
+    mutate((v) => { v.settings.notify = 'monthly'; });
+    const granted = await enableMonthlyNudge();
+    if (!granted && notifyPermission() === 'denied') {
+      alert('Notifications are blocked in your browser settings. The nudge is on, but it can only show if you allow notifications for this site.');
+    }
+  };
+
   const rows = [
     { icon: <Sparkles size={17} />, label: 'Plan', value: plan === 'premium' ? 'Premium' : 'Free', onClick: () => navigate('/pricing') },
     { icon: <Cloud size={17} />, label: 'Sync & account', value: syncValue, onClick: () => navigate('/account') },
@@ -81,7 +94,7 @@ export default function YouView() {
       ? [{ icon: <FolderOpen size={17} />, label: 'Local folder', value: folderValue, onClick: onFolderClick }]
       : []),
     { icon: <Activity size={17} />, label: 'Trackers', value: activeTrackerCount ? String(activeTrackerCount) : '', onClick: () => navigate('/trackers') },
-    { icon: <Bell size={17} />, label: 'Monthly nudge', value: notify === 'monthly' ? 'On' : 'Off', onClick: () => mutate((v) => { v.settings.notify = notify === 'monthly' ? 'off' : 'monthly'; }) },
+    { icon: <Bell size={17} />, label: 'Monthly nudge', value: notify === 'monthly' ? (notifyPermission() === 'granted' ? 'On' : 'Allow') : 'Off', onClick: onToggleNudge },
     { icon: <Download size={17} />, label: 'Export vault', value: '', onClick: exportVault },
     { icon: <Upload size={17} />, label: 'Import data', value: '', onClick: importVault },
     { icon: <RotateCcw size={17} />, label: 'Reset to demo', value: '', onClick: () => { if (confirm('Replace your vault with the demo data? This cannot be undone.')) void resetDemo(); } },
