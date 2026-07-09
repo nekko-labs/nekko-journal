@@ -1,0 +1,7 @@
+
+# Playwright
+playwright-report/
+test-results/
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/.last-run.json

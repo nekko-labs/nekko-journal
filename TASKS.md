@@ -174,7 +174,6 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 - [ ] **T22** — Cross-device sync (Premium): no-backend iCloud (Apple) + Google Drive appData (Android) vault-snapshot sync; Supabase snapshot stays the web path. · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T23** — Siri / agent integration (Premium): iOS App Intents / Shortcuts + agent-callable "add goal" / "write this month". · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T24** — Real billing: App Store / Play Store IAP + Stripe (web) flipping the `plan` entitlement; the in-app toggle is a preview only. Handoff to Philip. · Added: 2026-07-09 · [spec](SPEC.md#plans--billing)
-- [ ] **T16** — CI: Playwright E2E (build + unit CI already done via PR #1). · Added: 2026-06-29
 
 ## Backlog / Planned
 
@@ -222,6 +221,9 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4g — Playwright E2E (2026-07-09)
+- [x] **T16** — Playwright E2E (`apps/web/e2e/journey.spec.ts`, 6 specs) covering onboarding→year, month journaling, offline journaling-assist prompt insert, goals, insights, tracker creation. Runs against a `vite preview` build; new `e2e` job in CI installs Chromium and uploads the report. All 6 pass locally. · Done: 2026-07-09
 
 ### Phase 4f — AI journaling assist (2026-07-09)
 - [x] **T17 / T18 / T19** — Provider-agnostic AI in `packages/core/src/ai.ts` (DOM-free, default Claude, deterministic offline mock; 8 new Vitest, 35 passing): reflection prompts, month summarize, year-in-review draft, goal→monthly breakdown — each with a mock + real path + parser. Web `lib/ai.ts` supplies the Claude provider via the official `@anthropic-ai/sdk` (BYO key in localStorage, `dangerouslyAllowBrowser`, model picker). UI: `AIAssist` on Month (prompts insertable + summarize), suggested monthly plan on Goals (placeable), draft year-in-review on Look back, `AIView` key/model settings linked from You. All verified offline in preview. · Done: 2026-07-09 · [spec](SPEC.md#ai-journaling-assist)
