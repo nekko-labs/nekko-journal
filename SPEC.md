@@ -99,7 +99,8 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 ### Month surface
 - **Markdown journal + natural editor** `[shipped]` — plain textarea with a cursor and a formatting toolbar (heading/bold/italic/code/list/quote/link), no syntax highlighting; renders `#`/`##`/`###`, `-`/`*`, `1.`, `>`, `**`, `*`, `` ` ``, links, `---`.
 - **Goals this month** `[shipped]` — the goals placed into this month, each with a done toggle.
-- **Per-goal photos + limits** `[shipped]` — attach photos to a goal within the month (data URL today); enforced per-month limit (3 free / 25 premium) with an upgrade prompt at the ceiling.
+- **Per-goal photos + limits** `[shipped]` — attach photos to a goal within the month; multi-select upload, each photo downscaled + re-encoded client-side (longest edge capped at 1600px) so the vault stays small; enforced per-month limit (3 free / 25 premium) with an upgrade prompt at the ceiling.
+- **Captions + lightbox** `[shipped]` — tap a photo for a full-screen viewer: swipe/arrow between a goal's photos, edit the caption inline, delete. Captions preview on the thumbnail.
 - **Legacy fields retained** `[shipped]` — highlights / struggles / trackers / mood / gratitude remain in the data model (import/migration) though the v7 UI folds prose into the journal.
 
 ### Goals surface

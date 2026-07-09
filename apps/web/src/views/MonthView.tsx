@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Check, X, Lock } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Check, Lock } from 'lucide-react';
 import {
   type Goal,
   MONTH_NAMES,
@@ -12,10 +12,13 @@ import {
   ensureMonth,
   addGoalPhoto,
   removeGoalPhoto,
+  setGoalPhotoCaption,
   countMonthPhotos,
 } from '@nekko/journal-core';
 import { useVault } from '../state/store';
 import { Markdown, MarkdownEditor } from '../components/markdown';
+import Lightbox from '../components/Lightbox';
+import { processImageFile } from '../lib/image';
 
 function photoId() {
   return `p-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
@@ -30,9 +33,11 @@ export default function MonthView() {
   const { year, month } = parseMonthKey(key);
   const [editing, setEditing] = useState(false);
   const [limitHit, setLimitHit] = useState(false);
+  // Which goal's photo set is open in the lightbox, and at what index.
+  const [viewer, setViewer] = useState<{ goalId: string; index: number } | null>(null);
 
   // Reset transient UI when navigating between months.
-  useEffect(() => { setEditing(false); setLimitHit(false); }, [key]);
+  useEffect(() => { setEditing(false); setLimitHit(false); setViewer(null); }, [key]);
 
   const monthObj = vault.months[key];
   const reflection = monthObj?.reflection ?? '';
@@ -58,23 +63,24 @@ export default function MonthView() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const src = String(reader.result);
+    input.multiple = true;
+    input.onchange = async () => {
+      const files = Array.from(input.files ?? []);
+      for (const file of files) {
+        // Re-check the limit per file so a multi-select can't overshoot.
+        if (countMonthPhotos(useVault.getState().vault?.months[key]) >= limit) { setLimitHit(true); break; }
+        const { src, width, height } = await processImageFile(file);
         mutate((v) => {
           ensureMonth(v, key);
-          addGoalPhoto(v, key, goalId, { id: photoId(), src, caption: file.name }, limit);
+          addGoalPhoto(v, key, goalId, { id: photoId(), src, width, height }, limit);
         });
-      };
-      reader.readAsDataURL(file);
+      }
     };
     input.click();
   };
 
   const delPhoto = (goalId: string, id: string) => mutate((v) => removeGoalPhoto(v, key, goalId, id));
+  const setCaption = (goalId: string, id: string, caption: string) => mutate((v) => setGoalPhotoCaption(v, key, goalId, id, caption));
 
   const photoCount = countMonthPhotos(monthObj);
 
@@ -154,22 +160,28 @@ export default function MonthView() {
                     </button>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 pl-6">
-                    {photos.map((p) => (
-                      <div key={p.id} className="group relative h-14 w-14 overflow-hidden rounded-xl" style={{ background: `var(--surface-2)` }}>
-                        <img src={p.src} alt={p.caption ?? ''} className="h-full w-full object-cover" />
-                        <button
-                          onClick={() => delPhoto(g.id, p.id)}
-                          className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded-full opacity-0 transition group-hover:opacity-100"
-                          style={{ background: 'rgba(0,0,0,.55)', color: '#fff' }}
-                          aria-label="Remove photo"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
+                    {photos.map((p, i) => (
+                      <button
+                        key={p.id}
+                        onClick={() => setViewer({ goalId: g.id, index: i })}
+                        className="group relative h-16 w-16 overflow-hidden rounded-xl transition active:scale-95"
+                        style={{ background: 'var(--surface-2)', boxShadow: 'var(--shadow-soft)' }}
+                        aria-label={p.caption ? `View photo: ${p.caption}` : 'View photo'}
+                      >
+                        <img src={p.src} alt={p.caption ?? ''} loading="lazy" className="h-full w-full object-cover transition group-hover:scale-105" />
+                        {p.caption && (
+                          <span
+                            className="absolute inset-x-0 bottom-0 truncate px-1.5 py-1 text-left text-[9px] font-medium leading-none"
+                            style={{ background: 'linear-gradient(transparent, rgba(0,0,0,.6))', color: '#fff' }}
+                          >
+                            {p.caption}
+                          </span>
+                        )}
+                      </button>
                     ))}
                     <button
                       onClick={() => addPhoto(g.id)}
-                      className="grid h-14 w-14 place-items-center rounded-xl transition active:scale-95"
+                      className="grid h-16 w-16 place-items-center rounded-xl transition active:scale-95"
                       style={{ border: '1.5px dashed var(--border)', color: 'var(--text-faint)' }}
                       aria-label="Add photo"
                     >
@@ -194,6 +206,26 @@ export default function MonthView() {
           </div>
         )}
       </section>
+
+      {viewer && (() => {
+        const photos = monthObj?.goalCheckins[viewer.goalId]?.photos ?? [];
+        if (photos.length === 0 || viewer.index >= photos.length) { setViewer(null); return null; }
+        return (
+          <Lightbox
+            photos={photos}
+            index={viewer.index}
+            onIndexChange={(i) => setViewer({ ...viewer, index: i })}
+            onClose={() => setViewer(null)}
+            onCaption={(id, caption) => setCaption(viewer.goalId, id, caption)}
+            onDelete={(id) => {
+              delPhoto(viewer.goalId, id);
+              const remaining = photos.length - 1;
+              if (remaining <= 0) setViewer(null);
+              else setViewer({ ...viewer, index: Math.min(viewer.index, remaining - 1) });
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
