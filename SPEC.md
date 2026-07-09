@@ -132,7 +132,8 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 ### Platform & growth
 - **Responsive desktop + mobile web** `[shipped]` — one web app: bottom tabs + full-bleed on mobile, top nav + centered column on desktop.
 - **Native iOS/Android (Expo)** `[in progress]` — a real Expo React Native app sharing `packages/core` + `packages/shared`, same ocean design.
-- **Installable PWA + monthly nudge** `[planned]` — one gentle monthly reminder (local notification), no daily nags.
+- **Installable PWA** `[shipped]` — web app manifest + maskable icon + offline service worker (runtime cache, shell fallback), so Nekko installs to the home screen and works offline.
+- **Gentle monthly nudge** `[shipped]` — at most one calendar-month reminder (Web Notification), and only if the current month isn't journaled yet; tapping it opens that month. Opt-in from You; no daily nags, no streaks.
 - **Marketing site + live demo** `[planned]` — Vercel config + DEPLOY.md done; actual deploy is Philip's.
 - **CI / E2E** `[in progress]` — build + unit CI shipped; Playwright E2E planned.
 

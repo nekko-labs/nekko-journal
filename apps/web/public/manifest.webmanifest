@@ -1,0 +1,15 @@
+{
+  "name": "Nekko Journal",
+  "short_name": "Nekko",
+  "description": "A calm, anti-streak monthly journal. Set yearly goals, break them into months, and look back at your life a month at a time.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf7f1",
+  "theme_color": "#3e8fa0",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    { "src": "icon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" }
+  ]
+}
