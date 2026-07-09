@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, View, Text } from 'react-native';
+import { ActivityIndicator, View, Text, Linking } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useVault } from './src/store';
+import { handleDeepLink } from './src/intents';
 import YearScreen from './src/screens/YearScreen';
 import MonthScreen from './src/screens/MonthScreen';
 import GoalsScreen from './src/screens/GoalsScreen';
@@ -49,6 +50,14 @@ export default function App() {
   const t = useVault((s) => s.tokens());
 
   useEffect(() => { void load(); }, [load]);
+
+  // Siri / Shortcuts / agent entry: nekkojournal://intent?phrase=...
+  useEffect(() => {
+    const onUrl = ({ url }: { url: string }) => { handleDeepLink(url); };
+    const sub = Linking.addEventListener('url', onUrl);
+    void Linking.getInitialURL().then((url) => { if (url) handleDeepLink(url); });
+    return () => sub.remove();
+  }, []);
 
   if (!loaded) {
     return (

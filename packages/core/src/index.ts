@@ -3,6 +3,7 @@ export * from './frontmatter.js';
 export * from './vaultfiles.js';
 export * from './lookback.js';
 export * from './ai.js';
+export * from './intents.js';
 export * from './sync.js';
 export * from './seed.js';
 

@@ -124,15 +124,15 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 ### Own-your-data & sync
 - **JSON export / import** `[shipped]` — own-your-data export + import from the You surface.
 - **Open a real local folder** `[shipped]` — see Foundation & shell: the vault can live as a folder of plain files on disk (File System Access), mirrored on every edit.
-- **Cross-device sync (Premium)** `[in progress]` — target is **no-backend, client-to-cloud**: **iCloud** (iCloud Drive / key-value) on Apple, **Google Drive appData** on Android. Optional **Supabase** whole-vault last-write-wins snapshot remains the web/desktop sync path (free tier stays fully local when unconfigured).
-- **Siri & agent integration (Premium)** `[planned]` — add goals and journal entries by voice via iOS App Intents / Shortcuts (and an agent-callable interface); premium-gated.
+- **Cross-device sync (Premium)** `[in progress]` — **no-backend, client-to-cloud**: whole-vault last-write-wins snapshot (`reconcileVaults` in core). A working **Supabase** snapshot ships on both web and native (native via plain fetch, no native module; free tier stays fully local when unconfigured). The **iCloud** (Apple) and **Google Drive appData** (Android) providers slot into the same seam and are a native-module handoff.
+- **Siri & agent integration (Premium)** `[shipped, core]` — a provider-agnostic command layer in core (`applyIntent` / `parseIntent`: add a goal, write/append the month, add a highlight, set mood) drives both a `nekkojournal://intent?phrase=…` deep link (Shortcuts / agent-callable today) and the future iOS App Intents. The native App Intents plugin (Swift) is a dev-build handoff.
 - **Cloud photo storage** `[planned]` — move photos out of the snapshot into object storage with signed URLs before promoting "cloud photos".
 - **Live deploy + billing** `[planned]` — real Supabase project + Vercel deploy + App Store/Play/Stripe billing (handoff to Philip; needs credentials).
 
 ### Platform & growth
 - **Responsive desktop + mobile web** `[shipped]` — one web app: bottom tabs + full-bleed on mobile, top nav + centered column on desktop.
 - **Marketing site** `[shipped]` — a self-contained static landing page (`apps/site/`) in the app's ocean design: mood-grid hero, feature grid, the free/premium split, and a live-demo CTA. Deploy to Vercel + the real demo URL is a handoff to Philip.
-- **Native iOS/Android (Expo)** `[in progress]` — a real Expo React Native app sharing `packages/core` + `packages/shared`, same ocean design.
+- **Native iOS/Android (Expo)** `[shipped]` — a real Expo React Native app (`apps/native`) sharing `packages/core` + `packages/shared`: Year / Goals / Insights / You + Month, markdown journal, goal placement, sync + Siri/Shortcuts wiring, same ocean design. Runs local-first today; store publishing is part of the billing/deploy handoff.
 - **Installable PWA** `[shipped]` — web app manifest + maskable icon + offline service worker (runtime cache, shell fallback), so Nekko installs to the home screen and works offline.
 - **Gentle monthly nudge** `[shipped]` — at most one calendar-month reminder (Web Notification), and only if the current month isn't journaled yet; tapping it opens that month. Opt-in from You; no daily nags, no streaks.
 - **Marketing site + live demo** `[planned]` — Vercel config + DEPLOY.md done; actual deploy is Philip's.

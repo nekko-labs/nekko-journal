@@ -27,22 +27,40 @@ web app and persists to `AsyncStorage`. No account, no network required.
 - **Goals**: plan each goal into a month with a tappable month picker (the
   native stand-in for the web's drag-onto-a-month), toggle done.
 - **Insights**: all-time stat tiles, goals-across-the-year bars, progress.
-- **You**: Light/Dark + Free/Premium toggles, plan copy.
+- **You**: Light/Dark + Free/Premium toggles, plan copy, a **Sync** row
+  (Premium; "Sync now" + status), and a **Siri & Shortcuts** cheat-sheet.
 
-Shared logic (vault model, goal placement, photo limits, seed, lookback) is
-imported from `@nekko/journal-core`, so behavior stays in lock-step with web.
+Shared logic (vault model, goal placement, photo limits, seed, lookback, **sync
+reconciliation**, **agent/Siri intents**) is imported from `@nekko/journal-core`,
+so behavior stays in lock-step with web and is unit-tested there.
 
-## Still to wire (see repo TASKS.md T22–T24)
+## Sync (Premium) — `src/sync.ts`
 
-- **Sync (Premium, no backend):** `src/sync.ts` defines the `SyncProvider` seam.
-  Plan: **iCloud** on Apple (iCloud Drive document in the app's ubiquity
-  container, declared in `app.json`, or `NSUbiquitousKeyValueStore` for the
-  snapshot) and **Google Drive `appDataFolder`** on Android. Reconciliation
-  reuses core's `reconcileVaults` (whole-vault last-write-wins). Falls back to
-  the optional Supabase snapshot if client-to-cloud proves unreliable.
-- **Siri & agent (Premium):** iOS **App Intents / Shortcuts** for "add a goal"
-  and "write this month", plus an agent-callable interface. Gated on
-  `settings.plan === 'premium'`.
+`SyncProvider` is the seam; `getSyncProvider(deviceId)` picks the backend. A
+working **Supabase snapshot** provider (plain `fetch`/PostgREST, no native
+module) ships today — set `EXPO_PUBLIC_SUPABASE_URL` + `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+and the You → Sync row lights up. `store.syncNow()` reconciles with core's
+`reconcileVaults` (whole-vault last-write-wins), same as the web path.
+
+**No-backend target (handoff — needs a dev build + native modules):** **iCloud**
+on Apple (iCloud Drive document in the ubiquity container declared in `app.json`,
+or `NSUbiquitousKeyValueStore`) and **Google Drive `appDataFolder`** on Android.
+Both drop into the same `SyncProvider` interface. The device-scoped Supabase
+table is the MVP; promote to the authenticated, RLS-guarded table (see repo
+`supabase/schema.sql`) before real users.
+
+## Siri & agent (Premium) — `src/intents.ts` + core `intents.ts`
+
+The command vocabulary and all logic live in **core** (`applyIntent`,
+`parseIntent`, `resolveGoalByTitle`, `intentCatalog` — unit-tested). Native
+`runPhrase` / `runIntent` run an intent against the live store and persist;
+`handleDeepLink` handles `nekkojournal://intent?phrase=...` (wired in `App.tsx`),
+which is how a **Shortcut** or an **agent** invokes it today. Native **App
+Intents** (a Swift `AppIntent` per action + Shortcuts donation) are added via an
+Expo config plugin in a dev build that forwards to `runPhrase` — handoff.
+
+## Still to wire
+
 - **Photos:** add via `expo-image-picker` (core already stores them per goal and
   enforces the per-month limit).
 - **Billing:** App Store / Play Store IAP flipping `settings.plan`. The You
