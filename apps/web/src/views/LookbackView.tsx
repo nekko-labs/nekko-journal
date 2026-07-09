@@ -1,15 +1,20 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Star, History } from 'lucide-react';
+import { Camera, Star, History, Sparkles, Loader2 } from 'lucide-react';
 import {
   monthLabel,
   monthKey,
   monthsNewestFirst,
   buildYearInReview,
   thisMonthLastYear,
+  draftYearInReview,
+  mockProvider,
   type Month,
 } from '@nekko/journal-core';
 import { useVault } from '../state/store';
 import { PageHeader, Section } from '../components/ui';
+import { Markdown } from '../components/markdown';
+import { getAIProvider } from '../lib/ai';
 
 const MOODS = ['', '😞', '😕', '😐', '🙂', '😄'];
 
@@ -56,6 +61,19 @@ export default function LookbackView() {
   const review = buildYearInReview(vault, year);
   const all = monthsNewestFirst(vault);
 
+  const [draft, setDraft] = useState<string | null>(null);
+  const [drafting, setDrafting] = useState(false);
+  const writeReview = async () => {
+    setDrafting(true);
+    try {
+      setDraft(await draftYearInReview(getAIProvider(), review));
+    } catch {
+      setDraft(await draftYearInReview(mockProvider, review));
+    } finally {
+      setDrafting(false);
+    }
+  };
+
   // demo "current" month is June; show last-year's same month as a callback
   const thisMonthKey = monthKey(year, 6);
   const lastYear = thisMonthLastYear(vault, thisMonthKey);
@@ -87,6 +105,20 @@ export default function LookbackView() {
             <p className="mt-3 text-sm" style={{ color: 'var(--text-soft)' }}>
               🏆 Achieved: {review.goalsAchieved.map((g) => g.title).join(', ')}
             </p>
+          )}
+
+          <button
+            onClick={writeReview}
+            disabled={drafting}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition active:scale-95 disabled:opacity-60"
+            style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}
+          >
+            {drafting ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} Draft year-in-review
+          </button>
+          {draft && (
+            <div className="mt-4 rounded-2xl p-4" style={{ background: 'var(--surface-2)' }}>
+              <Markdown source={draft} />
+            </div>
           )}
         </Section>
 

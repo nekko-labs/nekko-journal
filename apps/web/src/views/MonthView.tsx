@@ -7,6 +7,7 @@ import {
   monthKey,
   parseMonthKey,
   photoLimit,
+  createMonth,
   updateMonth,
   updateGoal,
   ensureMonth,
@@ -20,6 +21,7 @@ import {
 import { useVault } from '../state/store';
 import { Markdown, MarkdownEditor } from '../components/markdown';
 import Lightbox from '../components/Lightbox';
+import AIAssist from '../components/AIAssist';
 import { processImageFile } from '../lib/image';
 
 function photoId() {
@@ -57,6 +59,11 @@ export default function MonthView() {
   };
 
   const setReflection = (md: string) => mutate((v) => updateMonth(v, key, { reflection: md }));
+  const insertPrompt = (text: string) => {
+    const base = reflection.trim();
+    setReflection(base ? `${base}\n\n${text}\n` : `${text}\n`);
+    setEditing(true);
+  };
   const toggleDone = (g: Goal) => mutate((v) => updateGoal(v, year, g.id, { status: g.status === 'done' ? 'active' : 'done' }));
 
   const addPhoto = (goalId: string) => {
@@ -127,6 +134,8 @@ export default function MonthView() {
         ) : (
           <p className="text-sm italic" style={{ color: 'var(--text-faint)' }}>Nothing yet. Tap Edit to write this month's entry.</p>
         )}
+
+        <AIAssist month={monthObj ?? createMonth(key)} goals={goals} onInsert={insertPrompt} />
       </section>
 
       {/* goals this month */}

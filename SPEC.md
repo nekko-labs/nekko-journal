@@ -137,10 +137,11 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 - **Marketing site + live demo** `[planned]` — Vercel config + DEPLOY.md done; actual deploy is Philip's.
 - **CI / E2E** `[in progress]` — build + unit CI shipped; Playwright E2E planned.
 
-### AI (later phase)
-- **Reflection prompts / journaling assistant** `[planned]` — mock-mode friendly.
-- **Auto-summarize a month from sparse notes; draft year-in-review** `[planned]`.
-- **Suggest goal → monthly breakdowns** `[planned]` — from a natural-language goal.
+### AI (journaling assist)
+- **Reflection prompts / journaling assistant** `[shipped]` — the Month surface suggests reflection prompts you can tap to drop into your entry.
+- **Auto-summarize a month; draft year-in-review** `[shipped]` — summarize the current month from its notes (Month), and draft a warm year-in-review from the year's data (Look back).
+- **Suggest goal → monthly breakdowns** `[shipped]` — turn a goal into a few monthly steps (Goals), placeable into the calendar with one tap.
+- **Provider-agnostic, default Claude, offline-first** `[shipped]` — all of the above run offline with built-in heuristics (no key, no network); adding a bring-your-own Claude API key (stored only on-device, never synced/exported) upgrades them to the model. Core `ai.ts` is DOM-free and provider-agnostic; the web layer supplies the Claude provider via the official SDK.
 
 ### Native (later phase)
 - **Expo React Native app** `[planned]` — a *real* RN app sharing `packages/core` + `packages/shared` (not a WebView shell).

@@ -15,6 +15,7 @@ import YearsView from './views/YearsView';
 import AccountView from './views/AccountView';
 import PricingView from './views/PricingView';
 import TrackersView from './views/TrackersView';
+import AIView from './views/AIView';
 
 function hasOnboarded(): boolean {
   try { return localStorage.getItem(ONBOARD_KEY) === '1'; } catch { return true; }
@@ -148,6 +149,7 @@ export default function App() {
             <Route path="/account" element={<AccountView />} />
             <Route path="/pricing" element={<PricingView />} />
             <Route path="/trackers" element={<TrackersView />} />
+            <Route path="/ai" element={<AIView />} />
             <Route path="*" element={<RootGate />} />
           </Routes>
         </div>

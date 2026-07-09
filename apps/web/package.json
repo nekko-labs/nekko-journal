@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
     "@nekko/journal-core": "*",
     "@nekko/journal-shared": "*",
     "@supabase/supabase-js": "^2.45.0",

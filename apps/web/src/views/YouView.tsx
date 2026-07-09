@@ -4,6 +4,7 @@ import { isMonthFilled } from '@nekko/journal-core';
 import { useVault } from '../state/store';
 import { useCloud } from '../state/cloud';
 import { enableMonthlyNudge, notifyPermission } from '../lib/nudge';
+import { aiConfigured } from '../lib/ai';
 
 export default function YouView() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function YouView() {
   const notify = vault.settings.notify ?? 'monthly';
 
   const activeTrackerCount = vault.trackers.filter((t) => t.active).length;
+  const aiOn = aiConfigured();
   const filledMonths = Object.values(vault.months).filter(isMonthFilled).length;
   const years = Object.keys(vault.years).map(Number);
   const sinceYear = years.length ? Math.min(...years) : new Date().getFullYear();
@@ -94,6 +96,7 @@ export default function YouView() {
       ? [{ icon: <FolderOpen size={17} />, label: 'Local folder', value: folderValue, onClick: onFolderClick }]
       : []),
     { icon: <Activity size={17} />, label: 'Trackers', value: activeTrackerCount ? String(activeTrackerCount) : '', onClick: () => navigate('/trackers') },
+    { icon: <Sparkles size={17} />, label: 'Journaling assist', value: aiOn ? 'Claude' : 'Offline', onClick: () => navigate('/ai') },
     { icon: <Bell size={17} />, label: 'Monthly nudge', value: notify === 'monthly' ? (notifyPermission() === 'granted' ? 'On' : 'Allow') : 'Off', onClick: onToggleNudge },
     { icon: <Download size={17} />, label: 'Export vault', value: '', onClick: exportVault },
     { icon: <Upload size={17} />, label: 'Import data', value: '', onClick: importVault },

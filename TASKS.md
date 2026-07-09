@@ -184,11 +184,6 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 ### Phase 3c — Cloud, hosting & tiering (handoff)
 - [ ] **T_cloud_handoff** — Actual Supabase project + Vercel deploy + Stripe billing — handoff to Philip (needs account credentials). Includes moving photos from data URLs to Supabase Storage (private bucket + signed URLs) before promoting "cloud photos". · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
 
-### Phase 4 — AI (later)
-- [ ] **T17** — Reflection prompts / journaling assistant (mock-mode friendly). · Added: 2026-06-29 · [spec](SPEC.md#ai-later-phase)
-- [ ] **T18** — Auto-summarize a month from sparse notes; draft year-in-review. · Added: 2026-06-29 · [spec](SPEC.md#ai-later-phase)
-- [ ] **T19** — Suggest goal → monthly breakdowns from a natural-language goal. · Added: 2026-06-29 · [spec](SPEC.md#ai-later-phase)
-
 ### Phase 5 — Native (later)
 - [ ] **T20** — Expo RN app sharing `packages/core` + `packages/shared` (real native, not WebView). · Added: 2026-06-29 · [spec](SPEC.md#native-later-phase)
 
@@ -227,6 +222,9 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4f — AI journaling assist (2026-07-09)
+- [x] **T17 / T18 / T19** — Provider-agnostic AI in `packages/core/src/ai.ts` (DOM-free, default Claude, deterministic offline mock; 8 new Vitest, 35 passing): reflection prompts, month summarize, year-in-review draft, goal→monthly breakdown — each with a mock + real path + parser. Web `lib/ai.ts` supplies the Claude provider via the official `@anthropic-ai/sdk` (BYO key in localStorage, `dangerouslyAllowBrowser`, model picker). UI: `AIAssist` on Month (prompts insertable + summarize), suggested monthly plan on Goals (placeable), draft year-in-review on Look back, `AIView` key/model settings linked from You. All verified offline in preview. · Done: 2026-07-09 · [spec](SPEC.md#ai-journaling-assist)
 
 ### Phase 4e — Installable PWA + monthly nudge (2026-07-09)
 - [x] **T14** — PWA: `manifest.webmanifest` + maskable `icon.svg` + offline `sw.js` (runtime stale-while-revalidate cache, navigation shell fallback), registered in `main.tsx` (production only). Ocean theme-color (light/dark). Gentle monthly nudge (`lib/nudge.ts`): at most one Web Notification per calendar month, only when the current month isn't journaled; opt-in from You (requests permission); tapping opens that month. · Done: 2026-07-09 · [spec](SPEC.md#platform--growth)
