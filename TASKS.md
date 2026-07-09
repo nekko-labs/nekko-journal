@@ -179,11 +179,7 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ## Backlog / Planned
 
-### Phase 2 — Surfaces (remaining)
-- [ ] **T9b** — Goals view: computed progress across the year (goal CRUD + monthly breakdown + color already shipped). · Added: 2026-06-29 · [spec](SPEC.md#goals-surface)
-
 ### Phase 3 — Polish & platform (remaining)
-- [ ] **T12b** — Trackers: define/edit-trackers UI (monthly entry UI + per-month bar charts already shipped). · Added: 2026-06-29 · [spec](SPEC.md#month-surface)
 - [ ] **T15** — Marketing site + live demo deployed (Vercel) — Vercel config + DEPLOY.md done; actual deploy is Philip's. · Added: 2026-06-29 · [spec](SPEC.md#platform--growth)
 
 ### Phase 3c — Cloud, hosting & tiering (handoff)
@@ -232,6 +228,10 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4d — Goal progress + tracker management (2026-07-09)
+- [x] **T9b** — Computed goal progress: core `goalProgress` (number goals accumulate monthly check-in `value`s toward target; milestone/boolean are done-or-not) + `yearGoalsProgress` aggregate. Insights progress bar uses averaged fraction; per-goal number progress bars show value/target. 5 new Vitest. · Done: 2026-07-09 · [spec](SPEC.md#goals-surface)
+- [x] **T12b** — Trackers management: core `updateTracker`/`archiveTracker`/`removeTracker` (deletes values across months); `TrackersView` (add/edit/archive/restore/delete, kind + unit + target + color) linked from You; quiet monthly tracker-entry section on Month (count stepper / number / rating chips / yes-no); restored per-tracker MonthBars charts in Insights. Verified in preview. · Done: 2026-07-09 · [spec](SPEC.md#month-surface)
 
 ### Phase 4c — Month photos polish (2026-07-09)
 - [x] **T11** — Photos polish: client-side downscale + re-encode on upload (`lib/image.ts`, caps longest edge at 1600px so the vault snapshot stays small; stores width/height), multi-select upload honoring the plan limit per file, editable captions, and a full-screen `Lightbox` (prev/next, keyboard Esc/←/→, caption editor, delete). Verified in preview. · Done: 2026-07-09 · [spec](SPEC.md#month-surface)

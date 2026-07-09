@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, ChevronRight, Sparkles, Cloud, Bell, Download, Upload, RotateCcw, FolderOpen } from 'lucide-react';
+import { Sun, Moon, ChevronRight, Sparkles, Cloud, Bell, Download, Upload, RotateCcw, FolderOpen, Activity } from 'lucide-react';
 import { isMonthFilled } from '@nekko/journal-core';
 import { useVault } from '../state/store';
 import { useCloud } from '../state/cloud';
@@ -23,6 +23,7 @@ export default function YouView() {
   const plan = vault.settings.plan ?? 'free';
   const notify = vault.settings.notify ?? 'monthly';
 
+  const activeTrackerCount = vault.trackers.filter((t) => t.active).length;
   const filledMonths = Object.values(vault.months).filter(isMonthFilled).length;
   const years = Object.keys(vault.years).map(Number);
   const sinceYear = years.length ? Math.min(...years) : new Date().getFullYear();
@@ -79,6 +80,7 @@ export default function YouView() {
     ...(fsSupported
       ? [{ icon: <FolderOpen size={17} />, label: 'Local folder', value: folderValue, onClick: onFolderClick }]
       : []),
+    { icon: <Activity size={17} />, label: 'Trackers', value: activeTrackerCount ? String(activeTrackerCount) : '', onClick: () => navigate('/trackers') },
     { icon: <Bell size={17} />, label: 'Monthly nudge', value: notify === 'monthly' ? 'On' : 'Off', onClick: () => mutate((v) => { v.settings.notify = notify === 'monthly' ? 'off' : 'monthly'; }) },
     { icon: <Download size={17} />, label: 'Export vault', value: '', onClick: exportVault },
     { icon: <Upload size={17} />, label: 'Import data', value: '', onClick: importVault },
