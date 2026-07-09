@@ -14,4 +14,7 @@ coverage/
 .claude/settings.local.json
 .github/skills/impeccable/
 .impeccable/
+# Vercel + combined-site build output
 _site/
+.vercel
+.env*
