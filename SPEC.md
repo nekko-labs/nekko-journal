@@ -101,12 +101,14 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 - **Goals this month** `[shipped]` — the goals placed into this month, each with a done toggle.
 - **Per-goal photos + limits** `[shipped]` — attach photos to a goal within the month; multi-select upload, each photo downscaled + re-encoded client-side (longest edge capped at 1600px) so the vault stays small; enforced per-month limit (3 free / 25 premium) with an upgrade prompt at the ceiling.
 - **Captions + lightbox** `[shipped]` — tap a photo for a full-screen viewer: swipe/arrow between a goal's photos, edit the caption inline, delete. Captions preview on the thumbnail.
-- **Legacy fields retained** `[shipped]` — highlights / struggles / trackers / mood / gratitude remain in the data model (import/migration) though the v7 UI folds prose into the journal.
+- **Monthly trackers** `[shipped]` — a quiet "This month" section (only when trackers are defined) to record each tracker's value: count stepper, number field, 1–5 rating chips, or yes/no. Monthly totals, never streaks.
+- **Legacy fields retained** `[shipped]` — highlights / struggles / mood / gratitude remain in the data model (import/migration) though the v7 UI folds prose into the journal.
 
 ### Goals surface
 - **In-calendar vs unplanned** `[shipped]` — planned goals with a month tag + done toggle; unplanned goals waiting on the board.
 - **Goal CRUD** `[shipped]` — add (on the Year board), toggle done, delete, jump to a goal's month.
-- **Computed progress across the year** `[shipped]` — done/total shown in Insights.
+- **Computed progress across the year** `[shipped]` — number goals accumulate their monthly check-in values toward a target (partial credit); milestone goals are done-or-not. Insights shows an averaged progress bar plus per-goal value/target bars.
+- **Tracker management** `[shipped]` — define / edit / archive / delete trackers (name, kind, unit, target, color) from the You surface; each charts across the year in Insights.
 
 ### Insights & look back
 - **All-time stat tiles** `[shipped]` — months journaled, goals achieved, years tracked, goals set, photos kept, words written.

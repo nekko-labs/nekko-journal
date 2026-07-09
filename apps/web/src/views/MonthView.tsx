@@ -13,6 +13,8 @@ import {
   addGoalPhoto,
   removeGoalPhoto,
   setGoalPhotoCaption,
+  setTrackerValue,
+  activeTrackers,
   countMonthPhotos,
 } from '@nekko/journal-core';
 import { useVault } from '../state/store';
@@ -81,6 +83,9 @@ export default function MonthView() {
 
   const delPhoto = (goalId: string, id: string) => mutate((v) => removeGoalPhoto(v, key, goalId, id));
   const setCaption = (goalId: string, id: string, caption: string) => mutate((v) => setGoalPhotoCaption(v, key, goalId, id, caption));
+
+  const trackers = activeTrackers(vault);
+  const setTracker = (id: string, value: number | boolean) => mutate((v) => { ensureMonth(v, key); setTrackerValue(v, key, id, value); });
 
   const photoCount = countMonthPhotos(monthObj);
 
@@ -206,6 +211,66 @@ export default function MonthView() {
           </div>
         )}
       </section>
+
+      {/* trackers — quiet monthly entry, only when any are defined */}
+      {trackers.length > 0 && (
+        <section className="mt-7 border-t pt-6" style={{ borderColor: 'var(--border)' }}>
+          <div className="mb-4 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>This month</div>
+          <div className="flex flex-col gap-4">
+            {trackers.map((t) => {
+              const raw = monthObj?.trackers[t.id];
+              return (
+                <div key={t.id} className="flex items-center gap-3">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: t.color ?? 'var(--accent)' }} />
+                  <span className="flex-1 text-[15px]" style={{ color: 'var(--text)' }}>
+                    {t.name}
+                    {t.target != null && <span className="ml-1.5 text-[11.5px]" style={{ color: 'var(--text-faint)' }}>/ {t.target}{t.unit ? ` ${t.unit}` : ''}</span>}
+                  </span>
+                  {t.kind === 'boolean' ? (
+                    <button
+                      onClick={() => setTracker(t.id, !(raw === true))}
+                      className="rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition active:scale-95"
+                      style={{ background: raw === true ? 'var(--success)' : 'var(--surface-2)', color: raw === true ? '#fff' : 'var(--text-soft)' }}
+                    >
+                      {raw === true ? 'Yes' : 'No'}
+                    </button>
+                  ) : t.kind === 'rating' ? (
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3, 4, 5].map((n) => {
+                        const on = typeof raw === 'number' && raw >= n;
+                        return (
+                          <button
+                            key={n}
+                            onClick={() => setTracker(t.id, raw === n ? 0 : n)}
+                            className="h-6 w-6 rounded-full text-[11px] font-semibold transition active:scale-90"
+                            style={{ background: on ? (t.color ?? 'var(--accent)') : 'var(--surface-2)', color: on ? '#fff' : 'var(--text-faint)' }}
+                            aria-label={`${t.name} ${n}`}
+                          >
+                            {n}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => setTracker(t.id, Math.max(0, (typeof raw === 'number' ? raw : 0) - 1))} className="grid h-7 w-7 place-items-center rounded-full text-lg leading-none transition active:scale-90" style={{ background: 'var(--surface-2)', color: 'var(--text-soft)' }} aria-label={`Decrease ${t.name}`}>−</button>
+                      <input
+                        value={typeof raw === 'number' ? String(raw) : ''}
+                        onChange={(e) => setTracker(t.id, Number(e.target.value.replace(/[^0-9.]/g, '')) || 0)}
+                        inputMode="decimal"
+                        placeholder="0"
+                        className="w-12 rounded-lg border-0 py-1.5 text-center text-[14px] font-semibold outline-none"
+                        style={{ background: 'var(--surface-2)', color: 'var(--text)' }}
+                      />
+                      <button onClick={() => setTracker(t.id, (typeof raw === 'number' ? raw : 0) + 1)} className="grid h-7 w-7 place-items-center rounded-full text-lg leading-none transition active:scale-90" style={{ background: 'var(--surface-2)', color: 'var(--text-soft)' }} aria-label={`Increase ${t.name}`}>+</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {viewer && (() => {
         const photos = monthObj?.goalCheckins[viewer.goalId]?.photos ?? [];

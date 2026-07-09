@@ -149,6 +149,58 @@ export function lifetimeStats(vault: Vault): LifetimeStats {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Goal progress
+// ---------------------------------------------------------------------------
+
+export interface GoalProgress {
+  goalId: string;
+  done: boolean;
+  /** 0..1. For number goals with a target: accumulated value / target. Else 0 or 1. */
+  fraction: number;
+  /** Accumulated value across the year's monthly check-ins (number goals). */
+  value?: number;
+  target?: number;
+}
+
+/**
+ * Computed progress for a single goal across its year. Number goals with a
+ * target accumulate their monthly check-in `value`s toward the target;
+ * milestone/boolean goals are simply done-or-not. A number goal that reaches
+ * its target counts as done even if not explicitly toggled.
+ */
+export function goalProgress(vault: Vault, goal: Goal): GoalProgress {
+  const done = goal.status === 'done';
+  if (goal.metricKind === 'number' && typeof goal.target === 'number' && goal.target > 0) {
+    let value = 0;
+    for (const m of filledMonths(vault, goal.year)) {
+      const c = m.goalCheckins[goal.id];
+      if (typeof c?.value === 'number') value += c.value;
+    }
+    const fraction = Math.min(1, value / goal.target);
+    return { goalId: goal.id, done: done || fraction >= 1, fraction: done ? 1 : fraction, value, target: goal.target };
+  }
+  return { goalId: goal.id, done, fraction: done ? 1 : 0 };
+}
+
+export interface YearProgress {
+  doneCount: number;
+  total: number;
+  /** Average per-goal progress fraction across the counted goals (0..1). */
+  fraction: number;
+}
+
+/** Aggregate goal progress for a year. `plannedOnly` counts only placed goals. */
+export function yearGoalsProgress(vault: Vault, year: number, plannedOnly = true): YearProgress {
+  const goals = (vault.years[year]?.goals ?? []).filter(
+    (g) => g.status !== 'dropped' && (!plannedOnly || g.plannedMonth != null),
+  );
+  const total = goals.length;
+  const sum = goals.reduce((n, g) => n + goalProgress(vault, g).fraction, 0);
+  const doneCount = goals.filter((g) => g.status === 'done').length;
+  return { doneCount, total, fraction: total ? sum / total : 0 };
+}
+
 /** Average mood per month for a year (undefined where no mood set). */
 export function moodSeries(vault: Vault, year: number): (number | undefined)[] {
   return yearMonthKeys(year).map((k) => vault.months[k]?.mood);

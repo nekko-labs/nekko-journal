@@ -268,6 +268,32 @@ export function addTracker(vault: Vault, tracker: Partial<Tracker> & { name: str
   return t;
 }
 
+export function updateTracker(vault: Vault, id: string, patch: Partial<Tracker>): Tracker | undefined {
+  const t = vault.trackers.find((x) => x.id === id);
+  if (!t) return undefined;
+  Object.assign(t, patch, { id: t.id });
+  return t;
+}
+
+/** Archive (hide) a tracker without losing its recorded values. */
+export function archiveTracker(vault: Vault, id: string): void {
+  updateTracker(vault, id, { active: false });
+}
+
+/**
+ * Permanently delete a tracker definition and its recorded values across every
+ * month. (Archiving keeps the data; this forgets it.)
+ */
+export function removeTracker(vault: Vault, id: string): void {
+  vault.trackers = vault.trackers.filter((t) => t.id !== id);
+  for (const m of Object.values(vault.months)) {
+    if (id in m.trackers) {
+      delete m.trackers[id];
+      m.updatedAt = now();
+    }
+  }
+}
+
 export function activeTrackers(vault: Vault): Tracker[] {
   return vault.trackers.filter((t) => t.active);
 }

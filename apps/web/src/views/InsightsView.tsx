@@ -1,6 +1,14 @@
 import { useNavigate } from 'react-router-dom';
-import { MONTH_ABBR, isMonthFilled, countMonthPhotos } from '@nekko/journal-core';
+import {
+  MONTH_ABBR,
+  isMonthFilled,
+  countMonthPhotos,
+  activeTrackers,
+  trackerSeries,
+  goalProgress,
+} from '@nekko/journal-core';
 import { useVault } from '../state/store';
+import { MonthBars } from '../components/charts';
 
 function fmt(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
@@ -38,7 +46,12 @@ export default function InsightsView() {
 
   const planned = yearGoals.filter((g) => g.plannedMonth != null);
   const doneCount = planned.filter((g) => g.status === 'done').length;
-  const pct = planned.length ? (doneCount / planned.length) * 100 : 0;
+  // Average per-goal progress (number goals contribute partial credit toward
+  // their target), which reads richer than a pure done/total ratio.
+  const avgFraction = planned.length ? planned.reduce((n, g) => n + goalProgress(vault, g).fraction, 0) / planned.length : 0;
+  const pct = avgFraction * 100;
+
+  const trackers = activeTrackers(vault);
 
   return (
     <div className="animate-rise">
@@ -82,15 +95,52 @@ export default function InsightsView() {
           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'var(--grad)', transition: 'width .5s var(--ease-out-quint)' }} />
         </div>
         <div className="mt-5 flex flex-col gap-3.5">
-          {planned.map((g) => (
-            <div key={g.id} className="flex items-center gap-3">
-              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
-              <span className="flex-1 text-[14.5px]" style={{ color: 'var(--text)', textDecoration: g.status === 'done' ? 'line-through' : 'none', opacity: g.status === 'done' ? 0.55 : 1 }}>{g.title}</span>
-              <span className="text-[11px]" style={{ color: 'var(--text-faint)' }}>{g.status === 'done' ? 'done' : 'active'}</span>
-            </div>
-          ))}
+          {planned.map((g) => {
+            const p = goalProgress(vault, g);
+            const isNumber = p.target != null;
+            const label = g.status === 'done' ? 'done' : isNumber ? `${p.value ?? 0}/${p.target}` : 'active';
+            return (
+              <div key={g.id}>
+                <div className="flex items-center gap-3">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
+                  <span className="flex-1 text-[14.5px]" style={{ color: 'var(--text)', textDecoration: g.status === 'done' ? 'line-through' : 'none', opacity: g.status === 'done' ? 0.55 : 1 }}>{g.title}</span>
+                  <span className="text-[11px] tabular-nums" style={{ color: p.done ? 'var(--success)' : 'var(--text-faint)' }}>{label}</span>
+                </div>
+                {isNumber && !p.done && (
+                  <div className="ml-[22px] mt-2 h-1 overflow-hidden rounded-full" style={{ background: 'var(--surface-2)' }}>
+                    <div className="h-full rounded-full" style={{ width: `${p.fraction * 100}%`, background: g.color ?? 'var(--accent)', transition: 'width .5s var(--ease-out-quint)' }} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* trackers across the year */}
+      {trackers.length > 0 && (
+        <div className="mt-8 border-t pt-6" style={{ borderColor: 'var(--border)' }}>
+          <div className="mb-4 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>Trackers · {currentYear}</div>
+          <div className="flex flex-col gap-6">
+            {trackers.map((t) => {
+              const series = trackerSeries(vault, currentYear, t.id);
+              const total = series.reduce<number>((n, v) => n + (typeof v === 'number' ? v : 0), 0);
+              return (
+                <div key={t.id}>
+                  <div className="mb-2 flex items-baseline justify-between">
+                    <span className="flex items-center gap-2 text-[14px] font-medium" style={{ color: 'var(--text)' }}>
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: t.color ?? 'var(--accent)' }} />
+                      {t.name}
+                    </span>
+                    <span className="text-[11.5px] tabular-nums" style={{ color: 'var(--text-faint)' }}>{total}{t.unit ? ` ${t.unit}` : ''}{t.target != null ? ` · target ${t.target}` : ''}</span>
+                  </div>
+                  <MonthBars series={series} color={t.color ?? 'var(--accent)'} unit={t.unit} height={64} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <button onClick={() => navigate('/lookback')} className="mt-8 text-[12.5px] font-semibold" style={{ color: 'var(--accent)' }}>
         Look back through the year →
