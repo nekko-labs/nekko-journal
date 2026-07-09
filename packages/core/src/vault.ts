@@ -208,6 +208,18 @@ export function addGoalPhoto(
   return m;
 }
 
+/** Edit the caption of a photo attached to a goal's check-in. */
+export function setGoalPhotoCaption(vault: Vault, key: MonthKey, goalId: string, photoId: string, caption: string): Month | undefined {
+  const m = vault.months[key];
+  const p = m?.goalCheckins[goalId]?.photos?.find((x) => x.id === photoId);
+  if (!m || !p) return undefined;
+  const trimmed = caption.trim();
+  if (trimmed) p.caption = trimmed;
+  else delete p.caption;
+  m.updatedAt = now();
+  return m;
+}
+
 export function removeGoalPhoto(vault: Vault, key: MonthKey, goalId: string, photoId: string): Month | undefined {
   const m = vault.months[key];
   const c = m?.goalCheckins[goalId];

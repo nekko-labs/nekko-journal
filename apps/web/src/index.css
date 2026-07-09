@@ -135,6 +135,10 @@ body {
 }
 .animate-rise { animation: rise 0.32s var(--ease-out-quint) both; }
 
+/* Backdrop / overlay fade (lightbox). */
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade { animation: fade 0.18s ease-out both; }
+
 /* Onboarding CTA: the button rises in after the subtext; the arrow then slides
    in from the left so the underline reads as extending into the arrowhead. */
 .onboard-cta { animation: rise 0.5s var(--ease-out-quint) both; animation-delay: 0.3s; }
