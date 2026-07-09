@@ -85,7 +85,8 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 - **Phone-first tabbed shell** `[shipped]` — Year / Goals / Insights / You via a bottom tab bar on mobile and a top nav on desktop; chrome hidden on the welcome + month surfaces. React Router (HashRouter).
 - **Simplified welcome** `[shipped]` — the first screen is just the title, "one month at a time", and one animated inspirational CTA (a teal underline that flows into an arrow). Shown once per device.
 - **Calm dark/light theming** `[shipped]` — CSS-variable theme with `data-theme`, warm-paper **calm-ocean** palette (teal accent `#3e8fa0` / `#6fb3c2` dark), generous whitespace.
-- **Local-first vault (zero-config)** `[in progress]` — IndexedDB persistence + seeded demo data so the app is alive on first run with no setup. Open-a-real-local-folder (File System Access API) still planned.
+- **Local-first vault (zero-config)** `[shipped]` — IndexedDB persistence + seeded demo data so the app is alive on first run with no setup.
+- **Open a real local folder** `[shipped]` — on Chromium (File System Access API), open a folder on disk as your vault. It's written as a human-browsable folder of files (`years/YYYY.json`, `months/YYYY-MM.md` with frontmatter, `.nekko/*.json`) and mirrored on every edit; reconnects after a reload. Truly own-your-data: the journal is plain files you can read, back up, or sync yourself.
 
 ### Year surface
 - **Semantic zoom (Years / Year / Timeline)** `[shipped]` — segmented control + ctrl+scroll to move between a multi-year overview, the month grid, and a scrolling timeline.
@@ -119,6 +120,7 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 
 ### Own-your-data & sync
 - **JSON export / import** `[shipped]` — own-your-data export + import from the You surface.
+- **Open a real local folder** `[shipped]` — see Foundation & shell: the vault can live as a folder of plain files on disk (File System Access), mirrored on every edit.
 - **Cross-device sync (Premium)** `[in progress]` — target is **no-backend, client-to-cloud**: **iCloud** (iCloud Drive / key-value) on Apple, **Google Drive appData** on Android. Optional **Supabase** whole-vault last-write-wins snapshot remains the web/desktop sync path (free tier stays fully local when unconfigured).
 - **Siri & agent integration (Premium)** `[planned]` — add goals and journal entries by voice via iOS App Intents / Shortcuts (and an agent-callable interface); premium-gated.
 - **Cloud photo storage** `[planned]` — move photos out of the snapshot into object storage with signed URLs before promoting "cloud photos".

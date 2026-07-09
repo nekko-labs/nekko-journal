@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, ChevronRight, Sparkles, Cloud, Bell, Download, Upload, RotateCcw } from 'lucide-react';
+import { Sun, Moon, ChevronRight, Sparkles, Cloud, Bell, Download, Upload, RotateCcw, FolderOpen } from 'lucide-react';
 import { isMonthFilled } from '@nekko/journal-core';
 import { useVault } from '../state/store';
 import { useCloud } from '../state/cloud';
@@ -11,6 +11,12 @@ export default function YouView() {
   const setVault = useVault((s) => s.setVault);
   const mutate = useVault((s) => s.mutate);
   const resetDemo = useVault((s) => s.resetDemo);
+  const fsSupported = useVault((s) => s.fsSupported);
+  const folderName = useVault((s) => s.folderName);
+  const folderStatus = useVault((s) => s.folderStatus);
+  const openFolder = useVault((s) => s.openFolder);
+  const reconnectFolder = useVault((s) => s.reconnectFolder);
+  const disconnectFolder = useVault((s) => s.disconnectFolder);
   const cloud = useCloud();
 
   const theme = vault.settings.theme;
@@ -52,9 +58,27 @@ export default function YouView() {
 
   const syncValue = !cloud.configured ? 'Local only' : cloud.session ? (plan === 'premium' ? 'On' : 'Sign-in only') : 'Off';
 
+  const folderValue =
+    folderStatus === 'connected' ? (folderName ?? 'On')
+    : folderStatus === 'reconnect' ? 'Reconnect'
+    : 'Off';
+
+  const onFolderClick = async () => {
+    if (folderStatus === 'connected') {
+      if (confirm(`Stop mirroring your journal to "${folderName}"? Your data stays in this browser.`)) await disconnectFolder();
+      return;
+    }
+    if (folderStatus === 'reconnect') { await reconnectFolder(); return; }
+    const res = await openFolder();
+    if (res?.loaded) alert('Opened the journal saved in that folder.');
+  };
+
   const rows = [
     { icon: <Sparkles size={17} />, label: 'Plan', value: plan === 'premium' ? 'Premium' : 'Free', onClick: () => navigate('/pricing') },
     { icon: <Cloud size={17} />, label: 'Sync & account', value: syncValue, onClick: () => navigate('/account') },
+    ...(fsSupported
+      ? [{ icon: <FolderOpen size={17} />, label: 'Local folder', value: folderValue, onClick: onFolderClick }]
+      : []),
     { icon: <Bell size={17} />, label: 'Monthly nudge', value: notify === 'monthly' ? 'On' : 'Off', onClick: () => mutate((v) => { v.settings.notify = notify === 'monthly' ? 'off' : 'monthly'; }) },
     { icon: <Download size={17} />, label: 'Export vault', value: '', onClick: exportVault },
     { icon: <Upload size={17} />, label: 'Import data', value: '', onClick: importVault },

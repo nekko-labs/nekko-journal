@@ -1,5 +1,6 @@
 export * from './vault.js';
 export * from './frontmatter.js';
+export * from './vaultfiles.js';
 export * from './lookback.js';
 export * from './sync.js';
 export * from './seed.js';

@@ -174,9 +174,7 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 - [ ] **T22** — Cross-device sync (Premium): no-backend iCloud (Apple) + Google Drive appData (Android) vault-snapshot sync; Supabase snapshot stays the web path. · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T23** — Siri / agent integration (Premium): iOS App Intents / Shortcuts + agent-callable "add goal" / "write this month". · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T24** — Real billing: App Store / Play Store IAP + Stripe (web) flipping the `plan` entitlement; the in-app toggle is a preview only. Handoff to Philip. · Added: 2026-07-09 · [spec](SPEC.md#plans--billing)
-- [ ] **T6** — Local-first vault: File System Access "open folder" support (IndexedDB persistence + seeded demo data already done & verified). · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T11** — Photos polish: thumbnails, captions UI, lightbox (drag/drop upload via data URL already done). · Added: 2026-06-29 · [spec](SPEC.md#month-surface)
-- [ ] **T13** — Own-your-data: File System Access folder save (JSON snapshot in IndexedDB + cloud snapshot already done). · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
 - [ ] **T14** — Responsive mobile-web (mobile bar done) → installable PWA + gentle monthly nudge (local notification / reminder). · Added: 2026-06-29 · [spec](SPEC.md#platform--growth)
 - [ ] **T16** — CI: Playwright E2E (build + unit CI already done via PR #1). · Added: 2026-06-29
 
@@ -235,6 +233,10 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4b — Local-first folder vault (2026-07-09)
+- [x] **T6** — Local-first vault: File System Access "open folder" support. Core `serializeVaultToFiles`/`parseVaultFromFiles` own the human-browsable folder-of-files layout (`years/YYYY.json`, `months/YYYY-MM.md`, `.nekko/*.json`) with a lossless round-trip (4 new Vitest); web `lib/fsaccess.ts` does the I/O, handle persisted in IndexedDB, reconnect after reload. · Done: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
+- [x] **T13** — Own-your-data: File System Access folder save — the vault mirrors to the connected folder on every edit (debounced); "Local folder" row in You (open / reconnect / disconnect). · Done: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 
 ### Phase 4 — v7 ocean redesign + plans (2026-07-09)
 - [x] **T_v7_model** — Core model + tokens: `Goal.plannedMonth`, `GoalCheckin.photos`, `Settings.plan`/`notify`, `GOAL_PALETTE`/`goalColor`, `photoLimit` + `addGoalPhoto`/`removeGoalPhoto`/`countMonthPhotos`/`setGoalPlannedMonth`/`goalsInMonth`; ocean CSS tokens + `--grad`; reseeded demo (placed goals, markdown journals, multi-year history). 18 Vitest passing. · Done: 2026-07-09
