@@ -170,10 +170,7 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ## Now / In Progress
 
-- [~] **T21** — Native iOS/Android Expo app (`apps/native`) sharing `packages/core` + `packages/shared`, ocean design; scaffold + key screens. · Added: 2026-07-09 · [spec](SPEC.md#platform--growth)
-- [ ] **T22** — Cross-device sync (Premium): no-backend iCloud (Apple) + Google Drive appData (Android) vault-snapshot sync; Supabase snapshot stays the web path. · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
-- [ ] **T23** — Siri / agent integration (Premium): iOS App Intents / Shortcuts + agent-callable "add goal" / "write this month". · Added: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
-- [ ] **T24** — Real billing: App Store / Play Store IAP + Stripe (web) flipping the `plan` entitlement; the in-app toggle is a preview only. Handoff to Philip. · Added: 2026-07-09 · [spec](SPEC.md#plans--billing)
+- [ ] **T24** — Real billing: App Store / Play Store IAP + Stripe (web) flipping the `plan` entitlement; the in-app toggle is a preview only. **Handoff to Philip** (needs store/Stripe accounts + credentials — cannot be built without them). · Added: 2026-07-09 · [spec](SPEC.md#plans--billing)
 
 ## Backlog / Planned
 
@@ -183,8 +180,6 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 ### Phase 3c — Cloud, hosting & tiering (handoff)
 - [ ] **T_cloud_handoff** — Actual Supabase project + Vercel deploy + Stripe billing — handoff to Philip (needs account credentials). Includes moving photos from data URLs to Supabase Storage (private bucket + signed URLs) before promoting "cloud photos". · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
 
-### Phase 5 — Native (later)
-- [ ] **T20** — Expo RN app sharing `packages/core` + `packages/shared` (real native, not WebView). · Added: 2026-06-29 · [spec](SPEC.md#native-later-phase)
 
 ## Shipped
 
@@ -221,6 +216,11 @@ Mirror nekko-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4h — Native completion + sync + agent/Siri (2026-07-09)
+- [x] **T20 / T21** — Real Expo RN app (`apps/native`, outside the web workspace so it never touches web CI) sharing `packages/core` + `packages/shared`: Year / Goals / Insights / You tabs + pushed Month (markdown journal + goals + photo counter). Ocean tokens mirror the web. · Done: 2026-07-09 · [spec](SPEC.md#platform--growth)
+- [x] **T22** — Cross-device sync (Premium): `SyncProvider` seam with a **working Supabase snapshot** provider (fetch/PostgREST, no native module, config via `EXPO_PUBLIC_SUPABASE_*`), `store.syncNow()` reconciling via core `reconcileVaults`, and a You → Sync row. No-backend **iCloud + Google Drive appData** providers slot into the same interface (native-module handoff, documented in `apps/native/README.md`). · Done: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
+- [x] **T23** — Siri / agent integration: provider-agnostic command layer in core `intents.ts` (`applyIntent` / `parseIntent` / `resolveGoalByTitle` / `intentCatalog`; 8 new Vitest, 43 total). Native `runPhrase` / `runIntent` + `nekkojournal://intent?phrase=…` deep link wired in `App.tsx`, plus a Siri/Shortcuts cheat-sheet in You. Native iOS App Intents plugin (Swift `AppIntent` + Shortcuts donation) is a dev-build handoff. · Done: 2026-07-09 · [spec](SPEC.md#own-your-data--sync)
 
 ### Phase 4g — Playwright E2E (2026-07-09)
 - [x] **T16** — Playwright E2E (`apps/web/e2e/journey.spec.ts`, 6 specs) covering onboarding→year, month journaling, offline journaling-assist prompt insert, goals, insights, tracker creation. Runs against a `vite preview` build; new `e2e` job in CI installs Chromium and uploads the report. All 6 pass locally. · Done: 2026-07-09
