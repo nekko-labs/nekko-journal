@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { Calendar, Target, BarChart3, User, Sparkles } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { useVault } from './state/store';
 import { useCloud } from './state/cloud';
 import { runMonthlyNudge } from './lib/nudge';
@@ -158,6 +159,7 @@ export default function App() {
         </div>
       </main>
       {showChrome && <BottomTabs />}
+      <Analytics />
     </div>
   );
 }
