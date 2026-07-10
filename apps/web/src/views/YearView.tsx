@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type DragEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type DragEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ChevronRight, Plus, Camera } from 'lucide-react';
@@ -85,6 +85,54 @@ export default function YearView() {
   const dropOnTray = (e: DragEvent) => { e.preventDefault(); if (dragId) place(dragId, null); onDragEnd(); };
 
   const zoomClass = zoomDir === 'out' ? 'animate-zoom-out' : 'animate-zoom-in';
+
+  // ── Timeline: track which month sits nearest the viewport center ──
+  // The centered month wears the pearlescent sheen; a right-edge scrubber
+  // mirrors it. Scroll-snap gently settles each month to the middle.
+  const listRef = useRef<HTMLDivElement>(null);
+  const rowRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [activeMonth, setActiveMonth] = useState(() => (year === currentYear ? currentMonth : 1));
+
+  useEffect(() => {
+    if (zoom !== 'list') return;
+    const listEl = listRef.current;
+    if (!listEl) return;
+    const scroller = (listEl.closest('main') as HTMLElement | null) ?? document.scrollingElement as HTMLElement;
+    if (!scroller) return;
+
+    const prevSnap = scroller.style.scrollSnapType;
+    scroller.style.scrollSnapType = 'y proximity';
+
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const sr = scroller.getBoundingClientRect();
+      const mid = sr.top + sr.height / 2;
+      let best = 1;
+      let bestDist = Infinity;
+      rowRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const dist = Math.abs(r.top + r.height / 2 - mid);
+        if (dist < bestDist) { bestDist = dist; best = i + 1; }
+      });
+      setActiveMonth((prev) => (prev === best ? prev : best));
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure); };
+
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    measure();
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+      scroller.style.scrollSnapType = prevSnap;
+    };
+  }, [zoom, year]);
+
+  const scrollToMonth = (m: number) =>
+    rowRefs.current[m - 1]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   return (
     <div onWheel={onWheel}>
@@ -247,19 +295,28 @@ export default function YearView() {
             />
           </div>
 
-          <div className="flex flex-col gap-[28vh]">
+          <div ref={listRef} className="flex flex-col gap-[28vh]">
             {MONTH_NAMES.map((name, i) => {
               const month = i + 1;
               const m = vault.months[monthKey(year, month)];
               const mg = goals.filter((g) => g.plannedMonth === month);
               return (
-                <motion.div key={month} variants={riseItem} initial={zoomCount === 0 ? 'hidden' : false} animate="show" custom={i}>
+                <motion.div
+                  key={month}
+                  ref={(el) => { rowRefs.current[i] = el; }}
+                  variants={riseItem}
+                  initial={zoomCount === 0 ? 'hidden' : false}
+                  animate="show"
+                  custom={i}
+                  style={{ scrollSnapAlign: 'center' }}
+                >
                   <TimelineRow
                     name={name}
                     monthNum={month}
                     month={m}
                     current={isCurrent(month)}
                     future={isFuture(year, month, currentYear, currentMonth)}
+                    pearl={activeMonth === month}
                     goals={mg}
                     onOpen={() => openMonth(month)}
                   />
@@ -267,6 +324,9 @@ export default function YearView() {
               );
             })}
           </div>
+
+          {/* Right-edge scrubber: 12 quiet dots, the centered month glowing pearl. */}
+          <TimelineScrubber active={activeMonth} onJump={scrollToMonth} />
         </div>
       )}
 
@@ -298,6 +358,7 @@ function TimelineRow({
   month,
   current,
   future,
+  pearl,
   goals,
   onOpen,
 }: {
@@ -306,6 +367,9 @@ function TimelineRow({
   month: Month | undefined;
   current: boolean;
   future: boolean;
+  // True when this is the month nearest the viewport center: it wears the
+  // pearlescent sheen while the others stay quiet.
+  pearl: boolean;
   goals: Goal[];
   onOpen: () => void;
 }) {
@@ -314,8 +378,6 @@ function TimelineRow({
   const preview = month?.reflection ? snippet(month.reflection) : '';
   const photos = countMonthPhotos(month);
   const dim = future && !filled;
-  // The months that hold something get the pearlescent sheen; empty ones stay quiet.
-  const pearl = filled || current;
 
   return (
     <button
@@ -373,6 +435,41 @@ function TimelineRow({
         </div>
       )}
     </button>
+  );
+}
+
+// A quiet vertical scrubber pinned to the right edge: one dot per month, gray
+// and faint, with the centered month glowing pearlescent. Tapping a dot glides
+// that month to the middle.
+function TimelineScrubber({ active, onJump }: { active: number; onJump: (m: number) => void }) {
+  return (
+    <div className="fixed right-1.5 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-2 sm:right-3">
+      {Array.from({ length: 12 }, (_, i) => {
+        const m = i + 1;
+        const on = m === active;
+        return (
+          <button
+            key={m}
+            onClick={() => onJump(m)}
+            aria-label={`Jump to ${MONTH_NAMES[i]}`}
+            aria-current={on ? 'true' : undefined}
+            className="grid place-items-center p-1"
+          >
+            <span
+              style={{
+                display: 'block',
+                borderRadius: 9999,
+                width: on ? 9 : 6,
+                height: on ? 9 : 6,
+                background: on ? 'var(--pearl)' : 'var(--text-faint)',
+                opacity: on ? 1 : 0.32,
+                transition: 'width .25s var(--ease-out-quint), height .25s var(--ease-out-quint), opacity .25s',
+              }}
+            />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
