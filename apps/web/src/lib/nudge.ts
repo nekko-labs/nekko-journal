@@ -6,7 +6,7 @@ import { type Vault, monthKey, isMonthFilled } from '@getsu/core';
 // so we surface the reminder when the app next opens in a new month.
 
 const LAST_NUDGE_KEY = 'getsu-last-nudge';
-const ICON = 'icon.svg';
+const ICON = 'icon-192.png';
 
 export function notifySupported(): boolean {
   return typeof window !== 'undefined' && 'Notification' in window;
