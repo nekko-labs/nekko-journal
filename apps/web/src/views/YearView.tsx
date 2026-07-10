@@ -247,7 +247,7 @@ export default function YearView() {
             />
           </div>
 
-          <div className="flex flex-col gap-12">
+          <div className="flex flex-col gap-[28vh]">
             {MONTH_NAMES.map((name, i) => {
               const month = i + 1;
               const m = vault.months[monthKey(year, month)];
@@ -256,6 +256,7 @@ export default function YearView() {
                 <motion.div key={month} variants={riseItem} initial={zoomCount === 0 ? 'hidden' : false} animate="show" custom={i}>
                   <TimelineRow
                     name={name}
+                    monthNum={month}
                     month={m}
                     current={isCurrent(month)}
                     future={isFuture(year, month, currentYear, currentMonth)}
@@ -293,6 +294,7 @@ function snippet(md: string, n = 104): string {
 // whitespace; future/empty months fade back so the written ones carry the eye.
 function TimelineRow({
   name,
+  monthNum,
   month,
   current,
   future,
@@ -300,12 +302,14 @@ function TimelineRow({
   onOpen,
 }: {
   name: string;
+  monthNum: number;
   month: Month | undefined;
   current: boolean;
   future: boolean;
   goals: Goal[];
   onOpen: () => void;
 }) {
+  const [revealed, setRevealed] = useState(false);
   const filled = isMonthFilled(month);
   const preview = month?.reflection ? snippet(month.reflection) : '';
   const photos = countMonthPhotos(month);
@@ -316,16 +320,24 @@ function TimelineRow({
   return (
     <button
       onClick={onOpen}
-      className="-mx-3 block w-full rounded-3xl px-3 py-3 text-left transition hover:bg-[var(--surface-2)]"
+      className="group -mx-3 block w-full rounded-3xl px-3 py-3 text-left transition hover:bg-[var(--surface-2)]"
       style={{ opacity: dim ? 0.4 : 1 }}
     >
-      <div className="flex items-baseline gap-3">
+      <div className="flex items-baseline gap-3.5">
         <h3
-          className={`serif text-[30px] font-semibold leading-none tracking-tight ${pearl ? 'pearl-text' : ''}`}
-          style={pearl ? { letterSpacing: '-0.5px' } : { color: 'var(--text-faint)', letterSpacing: '-0.5px' }}
+          onClick={(e) => { e.stopPropagation(); setRevealed((r) => !r); }}
+          className={`serif text-[56px] font-semibold leading-none tracking-tight ${pearl ? 'pearl-text' : ''}`}
+          style={pearl ? { letterSpacing: '-1px' } : { color: 'var(--text-faint)', letterSpacing: '-1px' }}
+        >
+          {monthNum}
+        </h3>
+        {/* The month name is a quiet subtext that fades in on hover (desktop) or tap (touch). */}
+        <span
+          className={`serif text-[16px] italic transition-opacity duration-300 group-hover:opacity-60 ${revealed ? 'opacity-60' : 'opacity-0'}`}
+          style={{ color: 'var(--text-soft)' }}
         >
           {name}
-        </h3>
+        </span>
         {current && <span className="text-[9.5px] font-bold uppercase tracking-[1.3px]" style={{ color: 'var(--accent)' }}>this month</span>}
       </div>
 
