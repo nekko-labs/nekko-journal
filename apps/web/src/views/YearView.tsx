@@ -236,18 +236,18 @@ export default function YearView() {
       {zoom === 'list' && (
         <div key={`list-${year}`} className={zoomCount > 0 ? zoomClass : undefined}>
           {/* year header + editable theme word */}
-          <div className="pb-6 text-center">
-            <div className="serif text-[32px] font-semibold tracking-tight">{year}</div>
+          <div className="pb-12 pt-2 text-center">
+            <div className="serif text-[34px] font-semibold tracking-tight">{year}</div>
             <input
               value={themeWord}
               onChange={(e) => mutate((v) => setYearTheme(v, year, e.target.value))}
               placeholder="a word for the year"
-              className="serif mt-1 w-full bg-transparent text-center text-[15px] italic outline-none"
+              className="serif mt-1.5 w-full bg-transparent text-center text-[15px] italic outline-none"
               style={{ color: 'var(--text-soft)' }}
             />
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-2">
             {MONTH_NAMES.map((name, i) => {
               const month = i + 1;
               const m = vault.months[monthKey(year, month)];
@@ -259,7 +259,7 @@ export default function YearView() {
                     month={m}
                     current={isCurrent(month)}
                     future={isFuture(year, month, currentYear, currentMonth)}
-                    plannedCount={mg.length}
+                    goals={mg}
                     onOpen={() => openMonth(month)}
                   />
                 </motion.div>
@@ -288,22 +288,22 @@ function snippet(md: string, n = 104): string {
   return clean.length > n ? `${clean.slice(0, n).trimEnd()}…` : clean;
 }
 
-// A calm, journaling-first timeline row: the month leads with its journal
-// snippet; goals and photos are demoted to a quiet meta line; future/empty
-// months fade back so the written ones carry the eye.
+// A calm, journaling-first timeline row: a large month title, then its journal
+// lead line, then the month's goals as small dot + title subtext. Generous
+// whitespace; future/empty months fade back so the written ones carry the eye.
 function TimelineRow({
   name,
   month,
   current,
   future,
-  plannedCount,
+  goals,
   onOpen,
 }: {
   name: string;
   month: Month | undefined;
   current: boolean;
   future: boolean;
-  plannedCount: number;
+  goals: Goal[];
   onOpen: () => void;
 }) {
   const filled = isMonthFilled(month);
@@ -314,27 +314,45 @@ function TimelineRow({
   return (
     <button
       onClick={onOpen}
-      className="-mx-2 flex w-full items-start gap-4 rounded-2xl px-2 py-4 text-left transition hover:bg-[var(--surface-2)]"
-      style={{ opacity: dim ? 0.42 : 1 }}
+      className="-mx-3 block w-full rounded-3xl px-3 py-6 text-left transition hover:bg-[var(--surface-2)]"
+      style={{ opacity: dim ? 0.4 : 1 }}
     >
-      <div className="w-24 shrink-0 pt-0.5">
-        <div className="serif text-[22px] font-semibold leading-tight" style={{ color: filled || current ? 'var(--text)' : 'var(--text-faint)' }}>{name}</div>
-        {current && <div className="mt-1 text-[9px] font-bold uppercase tracking-[1.2px]" style={{ color: 'var(--accent)' }}>this month</div>}
+      <div className="flex items-baseline gap-3">
+        <h3 className="serif text-[30px] font-semibold leading-none tracking-tight" style={{ color: filled || current ? 'var(--text)' : 'var(--text-faint)', letterSpacing: '-0.5px' }}>{name}</h3>
+        {current && <span className="text-[9.5px] font-bold uppercase tracking-[1.3px]" style={{ color: 'var(--accent)' }}>this month</span>}
       </div>
-      <div className="min-w-0 flex-1 pt-0.5">
-        {preview ? (
-          <p className="line-clamp-2 text-[14px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>{preview}</p>
-        ) : (
-          <p className="text-[13.5px] italic" style={{ color: 'var(--text-faint)' }}>{future ? 'yet to come' : 'nothing written yet'}</p>
-        )}
-        {(plannedCount > 0 || photos > 0) && (
-          <div className="mt-2 flex items-center gap-3 text-[11px]" style={{ color: 'var(--text-faint)' }}>
-            {plannedCount > 0 && <span>{plannedCount} {plannedCount === 1 ? 'goal' : 'goals'}</span>}
-            {photos > 0 && <span className="flex items-center gap-1"><Camera size={11} /> {photos}</span>}
-          </div>
-        )}
-      </div>
-      <ChevronRight size={18} className="mt-1 shrink-0" style={{ color: 'var(--text-faint)' }} />
+
+      {preview ? (
+        <p className="mt-3.5 line-clamp-2 text-[15px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>{preview}</p>
+      ) : (
+        <p className="mt-3.5 text-[14px] italic" style={{ color: 'var(--text-faint)' }}>{future ? 'yet to come' : 'nothing written yet'}</p>
+      )}
+
+      {goals.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+          {goals.map((g) => (
+            <span key={g.id} className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
+              <span
+                className="text-[12.5px]"
+                style={{ color: 'var(--text-soft)', textDecoration: g.status === 'done' ? 'line-through' : 'none', opacity: g.status === 'done' ? 0.6 : 1 }}
+              >
+                {g.title}
+              </span>
+            </span>
+          ))}
+          {photos > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11.5px]" style={{ color: 'var(--text-faint)' }}>
+              <Camera size={12} /> {photos}
+            </span>
+          )}
+        </div>
+      )}
+      {goals.length === 0 && photos > 0 && (
+        <div className="mt-4 inline-flex items-center gap-1 text-[11.5px]" style={{ color: 'var(--text-faint)' }}>
+          <Camera size={12} /> {photos}
+        </div>
+      )}
     </button>
   );
 }
