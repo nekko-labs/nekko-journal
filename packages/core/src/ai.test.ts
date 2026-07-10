@@ -7,10 +7,12 @@ import {
   summarizeMonthMock,
   draftYearInReview,
   suggestGoalBreakdown,
+  reflectOnJourney,
+  reflectOnJourneyMock,
   type AIProvider,
 } from './ai.js';
 import { createEmptyVault, addGoal, updateMonth, setGoalCheckin, ensureMonth } from './vault.js';
-import { buildYearInReview } from './lookback.js';
+import { buildYearInReview, buildReflectionMaterial } from './lookback.js';
 
 function fakeProvider(reply: string): AIProvider {
   return { available: true, label: 'Test', complete: async () => reply };
@@ -62,6 +64,23 @@ describe('AI mock mode (no provider)', () => {
     // months are non-decreasing across the plan
     for (let i = 1; i < steps.length; i++) expect(steps[i].month).toBeGreaterThanOrEqual(steps[i - 1].month);
   });
+
+  it('reflectOnJourney reflects three lists offline', async () => {
+    const v = createEmptyVault();
+    v.years[2026] = { year: 2026, theme: '', goals: [], createdAt: '', updatedAt: '' };
+    addGoal(v, 2026, { title: 'Run a 5k', status: 'done', plannedMonth: 6 });
+    addGoal(v, 2026, { title: 'Read 12 books', status: 'active', plannedMonth: 3 });
+    addGoal(v, 2026, { title: 'Declutter the flat', status: 'active' }); // unplanned
+    updateMonth(v, '2026-06', { reflection: 'Ran my first 5k.\n\n- Cooked for friends', mood: 5 });
+    const r = await reflectOnJourney(mockProvider, buildReflectionMaterial(v));
+    expect(r.highlights.length).toBeGreaterThan(0);
+    expect(r.growth.length).toBeGreaterThan(0);
+    expect(r.workOn.length).toBeGreaterThan(0);
+    // an unplaced goal surfaces as something to work on
+    expect(r.workOn.join(' ')).toMatch(/board/i);
+    // reflectOnJourney with the offline provider equals the pure mock
+    expect(r).toEqual(reflectOnJourneyMock(buildReflectionMaterial(v)));
+  });
 });
 
 describe('AI real-provider path (parsing)', () => {
@@ -89,5 +108,16 @@ describe('AI real-provider path (parsing)', () => {
     const p = fakeProvider('   ');
     const prompts = await reflectionPrompts(p, m, []);
     expect(prompts.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('parses a journey reflection from three labeled sections', async () => {
+    const p = fakeProvider(
+      'Highlights:\n- You ran a 5k\nAreas of growth:\n- Steady journaling\nTo work on:\n- Schedule the board goals',
+    );
+    const v = createEmptyVault();
+    const r = await reflectOnJourney(p, buildReflectionMaterial(v));
+    expect(r.highlights).toContain('You ran a 5k');
+    expect(r.growth).toContain('Steady journaling');
+    expect(r.workOn).toContain('Schedule the board goals');
   });
 });

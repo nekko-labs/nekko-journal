@@ -179,6 +179,7 @@ Mirror getsu-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3c — Cloud, hosting & tiering (handoff)
 - [ ] **T_cloud_handoff** — Actual Supabase project + Vercel deploy + Stripe billing — handoff to Philip (needs account credentials). Includes moving photos from data URLs to Supabase Storage (private bucket + signed URLs) before promoting "cloud photos". · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
+- [ ] **T_reflect_native**: Mirror the web Phase 8 IA on native (`apps/native`): Reflect tab (photo memories + `reflectOnJourney`), Insights folded into You, Timeline-first Year. Core ops are already shared, so this is native-view work only. · Added: 2026-07-10 · [spec](SPEC.md#reflect-surface)
 
 
 ## Shipped
@@ -252,3 +253,7 @@ Mirror getsu-notes conventions; global defaults in `../../knowledgebase/principl
 - [x] **T_v7_surfaces** — Goals (in-calendar / unplanned), Insights (stat tiles + goal bars + progress), You (profile + theme + settings + export/import). · Done: 2026-07-09
 - [x] **T_v7_billing** — Free/Premium plans ($6/mo, $3 intro 3 months, occasional $3 sale), plan gating (photos 3/25, sync + Siri Premium), Pricing surface, plan preview toggle. · Done: 2026-07-09 · [spec](SPEC.md#plans--billing)
 - [x] **T_v7_responsive** — Responsive desktop + mobile web verified in preview (light + dark). · Done: 2026-07-09 · [spec](SPEC.md#platform--growth)
+
+### Phase 8: Reflect surface + journaling-first timeline (web)
+- [x] **T_reflect**: New **Reflect** tab (web) replacing the Insights tab slot: a **photo-memories rail** (`photoMemories` in core, across all months + goal check-ins, newest first; text-moment fallback when no photos) and a **whole-journey AI reflection** grouped into Highlights / Areas of growth / To work on. New provider-agnostic core ops `buildReflectionMaterial` (DOM-free digest of the whole vault) + `reflectOnJourney`/`reflectOnJourneyMock` (offline heuristic by default, Claude on demand, three-section parser + fallback); 2 new Vitest (47 total). Insights folded into **You** (extracted `InsightsPanel`, embedded above Theme/Settings). Verified end-to-end in preview. · Done: 2026-07-10 · [spec](SPEC.md#reflect-surface)
+- [x] **T_timeline**: Year surface **defaults to Timeline**, redesigned journaling-first (Dawn-inspired): each month leads with its journal lead line, goals/photos demoted to a quiet meta line, future/un-written months read faint. · Done: 2026-07-10 · [spec](SPEC.md#year-surface)

@@ -1,5 +1,5 @@
 import { type Month, type Goal, MONTH_NAMES, monthLabel } from '@getsu/shared';
-import { type YearInReview } from './lookback.js';
+import { type YearInReview, type ReflectionMaterial } from './lookback.js';
 
 // Provider-agnostic AI assistant for Getsu. The default is Claude, but
 // nothing here imports an SDK or touches the network: this module defines the
@@ -198,4 +198,109 @@ export async function suggestGoalBreakdown(provider: AIProvider, title: string, 
     if (idx >= 0) steps.push({ month: idx + 1, note: m[2].trim() });
   }
   return steps.length ? steps : suggestGoalBreakdownMock(title, startMonth);
+}
+
+// ---------------------------------------------------------------------------
+// 5. Reflect on the whole journey: highlights, growth, things to work on
+// ---------------------------------------------------------------------------
+
+/** A calm, three-part reflection over everything in the vault. */
+export interface JourneyReflection {
+  /** What's going well / brightest moments. */
+  highlights: string[];
+  /** Where the person has grown. */
+  growth: string[];
+  /** Gentle, non-nagging suggestions to work on. */
+  workOn: string[];
+}
+
+function plural(n: number, one: string, many = `${one}s`): string {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+export function reflectOnJourneyMock(m: ReflectionMaterial): JourneyReflection {
+  const highlights: string[] = [];
+  const growth: string[] = [];
+  const workOn: string[] = [];
+
+  // Highlights: follow-through, brightest month, a few remembered moments.
+  if (m.goalsAchieved.length) {
+    const few = m.goalsAchieved.slice(0, 3).join(', ');
+    highlights.push(`You followed through on ${plural(m.goalsAchieved.length, 'goal')}: ${few}${m.goalsAchieved.length > 3 ? ', and more' : ''}.`);
+  }
+  if (m.brightestMonth) highlights.push(`${m.brightestMonth} shines brightest in your record.`);
+  for (const h of m.highlights.slice(0, 3)) highlights.push(h);
+  if (!highlights.length) highlights.push('Your record is just beginning. The first highlight is a single month away.');
+
+  // Growth: the habit itself, trackers trending up, a life you can see.
+  if (m.monthsJournaled) growth.push(`You've kept ${plural(m.monthsJournaled, 'month')} across ${plural(m.yearsTracked, 'year')}, a real habit of looking back.`);
+  for (const t of m.trackerTotals.slice(0, 2)) {
+    const unit = t.unit || t.name.toLowerCase();
+    const target = t.target != null ? (t.total >= t.target ? `, past your target of ${t.target}` : `, on the way to ${t.target}`) : '';
+    growth.push(`${t.total} ${unit} logged${target}.`);
+  }
+  if (m.photoCount) growth.push(`${plural(m.photoCount, 'photo')} kept: a life you can see, not just remember.`);
+  if (growth.length < 2 && m.averageMood) growth.push(`Your months average ${m.averageMood.toFixed(1)} out of 5, steady ground to grow from.`);
+  if (!growth.length) growth.push('Every entry you add makes the next reflection a little richer.');
+
+  // To work on: unplaced goals, one in motion, a quiet month, named struggles.
+  if (m.goalsUnplanned.length) {
+    const one = m.goalsUnplanned.length === 1;
+    workOn.push(`${plural(m.goalsUnplanned.length, 'goal')} ${one ? 'is' : 'are'} still waiting on the board. Give ${one ? 'it' : 'them'} a month to live in.`);
+  }
+  if (m.goalsActive.length) workOn.push(`"${m.goalsActive[0]}" is still in motion. One small step this month keeps it alive.`);
+  if (m.quietestMonth && m.quietestMonth !== m.brightestMonth) workOn.push(`${m.quietestMonth} felt quieter. Worth a gentle look back at what it was asking for.`);
+  if (m.struggles.length) workOn.push(`You named ${plural(m.struggles.length, 'struggle')}. Naming them is already the hard part.`);
+  if (!workOn.length) workOn.push('Nothing pressing. Keep showing up once a month and let it compound.');
+
+  return { highlights: highlights.slice(0, 4), growth: growth.slice(0, 4), workOn: workOn.slice(0, 4) };
+}
+
+function parseReflection(text: string): JourneyReflection {
+  const out: JourneyReflection = { highlights: [], growth: [], workOn: [] };
+  let cur: keyof JourneyReflection | null = null;
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const head = line.toLowerCase().replace(/^[#*\s]+/, '');
+    if (/^highlight/.test(head)) { cur = 'highlights'; continue; }
+    if (/^(area|growth|grown)/.test(head)) { cur = 'growth'; continue; }
+    if (/^(to work|work on|things to work|work\b)/.test(head)) { cur = 'workOn'; continue; }
+    const bullet = line.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
+    if (cur && bullet) out[cur].push(bullet);
+  }
+  return out;
+}
+
+export async function reflectOnJourney(provider: AIProvider, m: ReflectionMaterial): Promise<JourneyReflection> {
+  if (!provider.available) return reflectOnJourneyMock(m);
+  const material = [
+    `Months journaled: ${m.monthsJournaled} across ${m.yearsTracked} year(s)`,
+    m.goalsAchieved.length && `Goals achieved: ${m.goalsAchieved.join(', ')}`,
+    m.goalsActive.length && `Goals in progress: ${m.goalsActive.join(', ')}`,
+    m.goalsUnplanned.length && `Goals not yet scheduled: ${m.goalsUnplanned.join(', ')}`,
+    m.highlights.length && `Highlights:\n${m.highlights.map((h) => `- ${h}`).join('\n')}`,
+    m.recentReflections.length && `Recent months:\n${m.recentReflections.map((r) => `- ${r.label}: ${r.text}`).join('\n')}`,
+    m.struggles.length && `Struggles: ${m.struggles.join('; ')}`,
+    m.trackerTotals.length && `Trackers: ${m.trackerTotals.map((t) => `${t.total} ${t.unit || t.name}`).join(', ')}`,
+    m.averageMood && `Average mood: ${m.averageMood.toFixed(1)}/5`,
+    m.brightestMonth && `Brightest month: ${m.brightestMonth}`,
+    m.quietestMonth && `Quietest month: ${m.quietestMonth}`,
+  ].filter(Boolean).join('\n');
+
+  const text = await provider.complete({
+    system:
+      'You are a calm, warm reflection companion for a monthly journal. From someone\'s months of entries you reflect back three short, specific, kind lists. Never nag, never moralize, never invent facts that are not in the notes. Use second person ("you"). Never use em dashes; prefer a comma, colon, or two short sentences. Output EXACTLY three sections, each header on its own line: "Highlights:", "Areas of growth:", "To work on:". Under each, 2-4 short bullet lines starting with "- ". No preamble and no closing remarks.',
+    user: `Reflect on this person's journal:\n\n${material}`,
+    maxTokens: 700,
+  });
+
+  const parsed = parseReflection(text);
+  if (!parsed.highlights.length && !parsed.growth.length && !parsed.workOn.length) return reflectOnJourneyMock(m);
+  const fallback = reflectOnJourneyMock(m);
+  return {
+    highlights: parsed.highlights.length ? parsed.highlights : fallback.highlights,
+    growth: parsed.growth.length ? parsed.growth : fallback.growth,
+    workOn: parsed.workOn.length ? parsed.workOn : fallback.workOn,
+  };
 }
