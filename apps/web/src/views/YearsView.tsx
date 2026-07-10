@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import {
   MONTH_ABBR,
   moodVar,
@@ -10,6 +11,7 @@ import {
 } from '@getsu/core';
 import { useVault } from '../state/store';
 import { PageHeader } from '../components/ui';
+import { riseItem } from '../lib/motion';
 
 function YearRow({ strip }: { strip: YearStrip }) {
   const navigate = useNavigate();
@@ -69,9 +71,9 @@ export default function YearsView() {
       />
       <div className="space-y-4">
         {years.map((y, i) => (
-          <div key={y} className="animate-rise" style={{ animationDelay: `${i * 30}ms` }}>
+          <motion.div key={y} variants={riseItem} initial="hidden" animate="show" custom={i}>
             <YearRow strip={buildYearStrip(vault, y)} />
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

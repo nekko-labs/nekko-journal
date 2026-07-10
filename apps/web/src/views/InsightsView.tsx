@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import {
   MONTH_ABBR,
   isMonthFilled,
@@ -9,6 +10,7 @@ import {
 } from '@getsu/core';
 import { useVault } from '../state/store';
 import { MonthBars } from '../components/charts';
+import { riseItem } from '../lib/motion';
 
 function fmt(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
@@ -54,7 +56,8 @@ export default function InsightsView() {
   const trackers = activeTrackers(vault);
 
   return (
-    <div className="animate-rise">
+    // Page entrance comes from the route transition in App.tsx.
+    <div>
       <h1 className="serif mb-1.5 mt-1.5 text-3xl font-semibold tracking-tight">Insights</h1>
       <p className="mb-6 text-[13.5px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>Everything you've done, at a month scale.</p>
 
@@ -62,10 +65,10 @@ export default function InsightsView() {
       <div className="mb-3.5 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>All time</div>
       <div className="grid grid-cols-3 gap-x-3 gap-y-6">
         {tiles.map((t, i) => (
-          <div key={i} className="animate-rise" style={{ animationDelay: `${i * 0.05}s` }}>
+          <motion.div key={i} variants={riseItem} initial="hidden" animate="show" custom={i}>
             <div className="serif text-3xl font-semibold leading-none" style={{ color: t.accent ? 'var(--accent)' : 'var(--text)' }}>{t.value}</div>
             <div className="mt-1.5 text-[11px] leading-tight" style={{ color: 'var(--text-soft)' }}>{t.label}</div>
-          </div>
+          </motion.div>
         ))}
       </div>
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { Check, Trash2, Sparkles, Loader2, MapPin } from 'lucide-react';
 import {
   type Goal,
@@ -16,6 +17,7 @@ import {
 } from '@getsu/core';
 import { useVault } from '../state/store';
 import { getAIProvider } from '../lib/ai';
+import { riseItem } from '../lib/motion';
 
 const EMPTY_GOALS: Goal[] = [];
 
@@ -128,9 +130,9 @@ export default function GoalsView() {
               ))}
             </ul>
             <div className="mt-3.5 flex gap-2">
-              <button onClick={() => applyPlan(g, planFor.steps)} className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold" style={{ background: 'var(--accent)', color: '#fff' }}>
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => applyPlan(g, planFor.steps)} className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold" style={{ background: 'var(--accent)', color: '#fff' }}>
                 <MapPin size={13} /> Place in {MONTH_NAMES[(planFor.steps[0]?.month ?? 1) - 1]}
-              </button>
+              </motion.button>
               <button onClick={() => setPlanFor(null)} className="rounded-full px-3 py-1.5 text-[12.5px] font-semibold" style={{ color: 'var(--text-soft)' }}>Dismiss</button>
             </div>
           </div>
@@ -140,7 +142,8 @@ export default function GoalsView() {
   };
 
   return (
-    <div className="animate-rise">
+    // Page entrance comes from the route transition in App.tsx.
+    <div>
       <h1 className="serif mb-1.5 mt-1.5 text-3xl font-semibold tracking-tight">Goals · {year}</h1>
       <p className="mb-6 text-[13.5px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>
         Every goal for the year, planned into a month or waiting on the board.
@@ -157,7 +160,11 @@ export default function GoalsView() {
           {planned
             .slice()
             .sort((a, b) => (a.plannedMonth ?? 0) - (b.plannedMonth ?? 0))
-            .map((g, i) => <Row key={g.id} g={g} first={i === 0} />)}
+            .map((g, i) => (
+              <motion.div key={g.id} variants={riseItem} initial="hidden" animate="show" custom={i}>
+                <Row g={g} first={i === 0} />
+              </motion.div>
+            ))}
         </div>
       )}
 
@@ -165,7 +172,11 @@ export default function GoalsView() {
         <>
           <div className="mb-3.5 mt-7 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>Unplanned</div>
           <div className="flex flex-col">
-            {unplanned.map((g, i) => <Row key={g.id} g={g} first={i === 0} />)}
+            {unplanned.map((g, i) => (
+              <motion.div key={g.id} variants={riseItem} initial="hidden" animate="show" custom={planned.length + i}>
+                <Row g={g} first={i === 0} />
+              </motion.div>
+            ))}
           </div>
           <p className="mt-4 text-[12px] italic" style={{ color: 'var(--text-faint)' }}>
             Open the <button onClick={() => navigate(`/year/${year}`)} className="underline" style={{ color: 'var(--accent)' }}>year board</button> and drag these onto the months where they'll happen.

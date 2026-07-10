@@ -1,6 +1,6 @@
 ---
 status: active
-last-updated: 2026-07-09
+last-updated: 2026-07-10
 owner: Philip
 ---
 
@@ -85,6 +85,7 @@ Living catalog of capabilities, grouped by area. Marked `[shipped]` / `[in progr
 - **Phone-first tabbed shell** `[shipped]` — Year / Goals / Insights / You via a bottom tab bar on mobile and a top nav on desktop; chrome hidden on the welcome + month surfaces. React Router (HashRouter).
 - **Simplified welcome** `[shipped]` — the first screen is just the title, "one month at a time", and one animated inspirational CTA (a teal underline that flows into an arrow). Shown once per device.
 - **Calm dark/light theming** `[shipped]` — CSS-variable theme with `data-theme`, warm-paper **calm-ocean** palette (teal accent `#3e8fa0` / `#6fb3c2` dark), generous whitespace.
+- **Calm motion language** `[shipped]`: gentle enter-only route transitions (fade + small rise) and staggered list/grid entrances in the app (via the `motion` library, ease-out only, never bounce); scroll-triggered reveals, a staggered month-tile entrance, and a slow breathing moon glow on the landing page. Everything respects `prefers-reduced-motion` and never delays interactivity.
 - **Local-first vault (zero-config)** `[shipped]` — IndexedDB persistence + seeded demo data so the app is alive on first run with no setup.
 - **Open a real local folder** `[shipped]` — on Chromium (File System Access API), open a folder on disk as your vault. It's written as a human-browsable folder of files (`years/YYYY.json`, `months/YYYY-MM.md` with frontmatter, `.getsu/*.json`) and mirrored on every edit; reconnects after a reload. Truly own-your-data: the journal is plain files you can read, back up, or sync yourself.
 

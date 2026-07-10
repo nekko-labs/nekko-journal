@@ -105,7 +105,8 @@ export default function YouView() {
   ];
 
   return (
-    <div className="animate-rise">
+    // Page entrance comes from the route transition in App.tsx.
+    <div>
       {/* profile */}
       <div className="flex items-center gap-4 pt-2">
         <BrandMark size={56} className="shrink-0" />

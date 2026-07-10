@@ -1,6 +1,6 @@
 ---
 status: active
-last-updated: 2026-07-09
+last-updated: 2026-07-10
 owner: Philip
 ---
 
@@ -121,7 +121,7 @@ Direction locked (Dawn-inspired refresh, PR #2; polished via the impeccable tool
 - **Typography**: Inter + Fraunces (system-font fallbacks — Fraunces→Georgia, Inter→system-ui — to avoid an external Google-Fonts `@import` that breaks offline use and hung preview screenshots). The "overused-font" warning from impeccable is accepted: the product register permits it and Philip chose it deliberately.
 - **Palette**: warm paper, calm ocean — cream `#fbf7f1` / warm-dark `#1c1a18`; single **ocean-teal** accent (`#3e8fa0` → `#6fb3c2` dark) with a lighter `--accent-2` for gradients. An 8-color **goal palette** (`GOAL_PALETTE`, ocean-leaning) colors goal chips. Theming via CSS vars + `data-theme`. (Superseded the earlier indigo accent in the v7 redesign, 2026-07-09.)
 - **Mood as a 5-step color primitive** — the mood-colored year grid is the signature surface.
-- **Shape & motion**: 20px radii, soft diffuse shadows, gentle rise animations; ease-out tokens, mood-chip pop, sync-icon spin, strong reduced-motion support.
+- **Shape & motion**: 20px radii, soft diffuse shadows, gentle rise animations; ease-out tokens, mood-chip pop, sync-icon spin, strong reduced-motion support. The web app uses the `motion` library (`motion/react`, shared vocabulary in `src/lib/motion.ts`) for enter-only route transitions and staggered list/grid entrances (`MotionConfig reducedMotion="user"`); the landing page adds IntersectionObserver scroll reveals and a breathing hero glow, all inline and reduced-motion aware.
 - **Semantic tokens**: success / error / warning / info (added in colorize pass). Removed an absolute-ban `border-left` accent stripe on goal cards in favor of a leading color dot.
 - **States & copy**: permanence in destructive confirms; empathetic auth errors. Design-context docs live in `apps/web/PRODUCT.md` + `DESIGN.md` (impeccable, register=product).
 
@@ -216,6 +216,9 @@ Mirror getsu-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3d — Design polish (PR #4, 2026-06-22)
 - [x] **T_impeccable** — impeccable design toolkit pass (init → clarify → colorize → animate): semantic tokens, destructive-confirm permanence, empathetic auth errors, ease-out/motion tokens, leading color dot on goal cards. Added `apps/web/PRODUCT.md` + `DESIGN.md`. · Done: 2026-06-22
+
+### Phase 4i - Motion polish (2026-07-10)
+- [x] **T_motion** - Calm motion pass: `motion` library in `apps/web` with enter-only route transitions (fade + 8px rise, 0.3s ease-out, scroll reset per route), staggered list/grid entrances (Year month cells, Goals rows, Insights stat tiles, Lookback timeline, Years rows; replacing the per-item CSS `animate-rise` delays), `whileTap` on primary buttons that lacked active-scale feedback, `MotionConfig reducedMotion="user"`; landing page gains IntersectionObserver scroll reveals (truths / pricing / footer), a staggered month-tile entrance, and a 7s breathing moon glow chained after the bloom, all inside the existing reduced-motion block. · Done: 2026-07-10 · [spec](SPEC.md#foundation--shell)
 
 ### Phase 4h — Native completion + sync + agent/Siri (2026-07-09)
 - [x] **T20 / T21** — Real Expo RN app (`apps/native`, outside the web workspace so it never touches web CI) sharing `packages/core` + `packages/shared`: Year / Goals / Insights / You tabs + pushed Month (markdown journal + goals + photo counter). Ocean tokens mirror the web. · Done: 2026-07-09 · [spec](SPEC.md#platform--growth)
