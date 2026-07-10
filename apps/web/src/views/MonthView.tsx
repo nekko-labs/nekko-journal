@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Plus, Check, Lock } from 'lucide-react';
 import {
   type Goal,
@@ -97,7 +98,9 @@ export default function MonthView() {
   const photoCount = countMonthPhotos(monthObj);
 
   return (
-    <div className="animate-rise pb-4">
+    // A writing surface stays very calm: the single gentle fade-rise comes
+    // from the route transition in App.tsx (keyed per month), nothing more.
+    <div className="pb-4">
       {/* header */}
       <div className="mb-5 flex items-center justify-between">
         <button
@@ -215,7 +218,7 @@ export default function MonthView() {
               You've reached {limit} photos this month.{plan === 'free' ? ' Premium keeps up to 25 a month.' : ''}
             </p>
             {plan === 'free' && (
-              <button onClick={() => navigate('/pricing')} className="shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold" style={{ background: 'var(--accent)', color: '#fff' }}>Upgrade</button>
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate('/pricing')} className="shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold" style={{ background: 'var(--accent)', color: '#fff' }}>Upgrade</motion.button>
             )}
           </div>
         )}

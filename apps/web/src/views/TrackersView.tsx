@@ -171,7 +171,8 @@ export default function TrackersView() {
   );
 
   return (
-    <div className="animate-rise">
+    // Page entrance comes from the route transition in App.tsx.
+    <div>
       <button onClick={() => navigate('/you')} className="mb-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition active:scale-95" style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
         <ArrowLeft size={15} /> You
       </button>

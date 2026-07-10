@@ -95,8 +95,14 @@
     .an { opacity:0; }
     .an.play { animation:rise .8s var(--ease) both; }
     @keyframes rise { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes rise-s { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    /* month tiles cascade in as part of the grid card's entrance (delays set in JS) */
+    .grid-card .mo { opacity:0; }
+    .grid-card.play .mo { animation:rise-s .6s var(--ease) both; }
     #m-glow { transform-origin:252px 206px; }
-    .play #m-glow { animation:bloom 1s var(--ease) .1s both; }
+    /* bloom first, then a very slow breathing pulse once the entrance settles */
+    .play #m-glow { animation:bloom 1s var(--ease) .1s both, breathe 7s ease-in-out 1.1s infinite alternate; }
+    @keyframes breathe { from { opacity:1; transform:scale(1); } to { opacity:.82; transform:scale(1.04); } }
     .play #m-moon { animation:mfade .8s var(--ease) .25s both; }
     .play #m-cat  { transform-origin:256px 452px; animation:settle .8s var(--ease) .4s both; }
     .play #m-eyes { opacity:0; animation:blink .5s var(--ease) 1.1s both; }
@@ -105,9 +111,14 @@
     @keyframes settle { from { opacity:0; transform:translateY(-34px); } to { opacity:1; transform:translateY(0); } }
     @keyframes blink { from { opacity:0; transform:scaleY(.05); } to { opacity:1; transform:scaleY(1); } }
 
+    /* scroll-triggered reveals for below-the-fold sections */
+    .sr { opacity:0; }
+    .sr.in { animation:rise .7s var(--ease) both; }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior:auto; }
       .an, .an.play { opacity:1 !important; animation:none !important; }
+      .sr, .sr.in, .grid-card .mo { opacity:1 !important; animation:none !important; }
       #m-glow,#m-moon,#m-cat,#m-eyes { animation:none !important; opacity:1 !important; transform:none !important; }
     }
     @media (max-width:640px) { .hero { padding:88px 0 72px; } .truths { padding:96px 0 24px; } .price { padding:88px 0; } }
@@ -157,12 +168,12 @@
     </section>
 
     <section class="truths wrap">
-      <div class="truth"><h2 class="serif">Daily is a chore. A year is a blur.</h2><p>A month is just right: often enough to remember, rare enough to stay calm. You show up about once a month, and that's the whole point.</p></div>
-      <div class="truth"><h2 class="serif">Goals you place in time</h2><p>Drag each yearly goal onto the month it belongs to. Progress adds up across the year instead of living or dying by a fragile streak.</p></div>
-      <div class="truth"><h2 class="serif">Yours, on your disk</h2><p>Runs fully offline. Open a folder you own and your journal is written as plain files. Export any time. Sync only if you want it.</p></div>
+      <div class="truth sr"><h2 class="serif">Daily is a chore. A year is a blur.</h2><p>A month is just right: often enough to remember, rare enough to stay calm. You show up about once a month, and that's the whole point.</p></div>
+      <div class="truth sr"><h2 class="serif">Goals you place in time</h2><p>Drag each yearly goal onto the month it belongs to. Progress adds up across the year instead of living or dying by a fragile streak.</p></div>
+      <div class="truth sr"><h2 class="serif">Yours, on your disk</h2><p>Runs fully offline. Open a folder you own and your journal is written as plain files. Export any time. Sync only if you want it.</p></div>
     </section>
 
-    <section class="price wrap">
+    <section class="price wrap sr">
       <div class="amt serif">Free is the whole app. <span class="serif">Premium is $6.</span></div>
       <p>Every surface, unlimited goals and entries, local photos, and export cost nothing. Premium only adds cross-device sync, more photos, and encrypted backup.</p>
       <div class="cta-row"><a class="btn btn-primary" href="/app/">Start your year</a></div>
@@ -170,7 +181,7 @@
   </main>
 
   <footer>
-    <div class="wrap">
+    <div class="wrap sr">
       <p><img class="fmark" src="/logo.svg" alt="" /><span class="serif" style="font-size:15px;color:var(--text)">Getsu</span> — a calm monthly journal by <a href="https://nekkolabs.com">Nekko Labs</a>.</p>
       <p class="sub">Local-first · MIT licensed · <a href="https://github.com/nekko-labs/getsu">Source on GitHub</a></p>
     </div>
@@ -185,6 +196,8 @@
       for (var i = 0; i < 12; i++) {
         var d = document.createElement('div');
         d.className = 'mo'; d.style.background = 'var(--mood-' + moods[i] + ')'; d.textContent = abbr[i];
+        // gentle stagger, chained onto the grid card's .42s entrance
+        d.style.animationDelay = (0.5 + i * 0.04) + 's';
         el.appendChild(d);
       }
       // trigger the opening animation after first paint
@@ -192,6 +205,21 @@
         var mark = document.querySelector('.mark'); if (mark) mark.classList.add('play');
         document.querySelectorAll('.an').forEach(function (n) { n.classList.add('play'); });
       });
+      // reveal below-the-fold sections once, as they enter the viewport
+      var srs = document.querySelectorAll('.sr');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+          });
+        // small fixed margin: a % margin can permanently hide the footer on tall
+        // viewports (it lives in the last few px of the document and can never
+        // scroll above a percentage threshold)
+        }, { rootMargin: '0px 0px -48px 0px' });
+        srs.forEach(function (n) { io.observe(n); });
+      } else {
+        srs.forEach(function (n) { n.classList.add('in'); });
+      }
     })();
   </script>
 </body>

@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
+import { MotionConfig, motion } from 'motion/react';
 import { Calendar, Target, BarChart3, User, Sparkles } from 'lucide-react';
+import { EASE_OUT } from './lib/motion';
 import { useVault } from './state/store';
 import { useCloud } from './state/cloud';
 import { runMonthlyNudge } from './lib/nudge';
@@ -113,7 +115,9 @@ export default function App() {
   const loaded = useVault((s) => s.loaded);
   const load = useVault((s) => s.load);
   const initCloud = useCloud((s) => s.init);
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
+  const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     void load().then(() => {
@@ -122,6 +126,11 @@ export default function App() {
       if (v) runMonthlyNudge(v);
     });
   }, [load, initCloud]);
+
+  // The scroll container persists across routes; start each surface at the top.
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0);
+  }, [pathname]);
 
   if (!loaded) {
     return (
@@ -134,12 +143,20 @@ export default function App() {
   const showChrome = chromeVisible(pathname);
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="flex h-full flex-col">
       <Splash />
       {showChrome && <TopNav />}
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-5 pb-8 pt-4 sm:px-6">
-          <Routes>
+      <main ref={mainRef} className="flex-1 overflow-y-auto">
+        {/* Gentle enter-only route transition: fade + small rise, never an exit. */}
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: EASE_OUT }}
+          className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-5 pb-8 pt-4 sm:px-6"
+        >
+          <Routes location={location}>
             <Route path="/" element={<RootGate />} />
             <Route path="/welcome" element={<OnboardingView />} />
             <Route path="/year/:year" element={<YearView />} />
@@ -155,9 +172,10 @@ export default function App() {
             <Route path="/ai" element={<AIView />} />
             <Route path="*" element={<RootGate />} />
           </Routes>
-        </div>
+        </motion.div>
       </main>
       {showChrome && <BottomTabs />}
     </div>
+    </MotionConfig>
   );
 }

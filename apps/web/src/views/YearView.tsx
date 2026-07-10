@@ -1,5 +1,6 @@
 import { useState, type CSSProperties, type DragEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { ChevronRight, Plus } from 'lucide-react';
 import {
   type Goal,
@@ -12,6 +13,7 @@ import {
   setYearTheme,
 } from '@getsu/core';
 import { useVault } from '../state/store';
+import { riseItem } from '../lib/motion';
 
 const EMPTY_GOALS: Goal[] = [];
 type Zoom = 'years' | 'grid' | 'list';
@@ -32,13 +34,19 @@ export default function YearView() {
 
   const [zoom, setZoom] = useState<Zoom>('grid');
   const [zoomDir, setZoomDir] = useState<'in' | 'out'>('in');
+  // 0 until the user first changes zoom level; the initial mount plays the
+  // month-cell cascade instead of the semantic-zoom animation, which only
+  // makes sense once an actual zoom has happened.
+  const [zoomCount, setZoomCount] = useState(0);
   const [draft, setDraft] = useState('');
   const [dragId, setDragId] = useState<string | null>(null);
   const [overMonth, setOverMonth] = useState<number | null>(null);
   const dragActive = dragId != null;
 
   const changeZoom = (z: Zoom) => {
+    if (z === zoom) return;
     setZoomDir(ZOOM_ORDER.indexOf(z) > ZOOM_ORDER.indexOf(zoom) ? 'in' : 'out');
+    setZoomCount((n) => n + 1);
     setZoom(z);
   };
   const onWheel = (e: React.WheelEvent) => {
@@ -99,7 +107,7 @@ export default function YearView() {
       {zoom === 'years' && <YearsOverview key={`years-${year}`} className={zoomClass} />}
 
       {zoom === 'grid' && (
-        <div key={`grid-${year}`} className={zoomClass}>
+        <div key={`grid-${year}`} className={zoomCount > 0 ? zoomClass : undefined}>
           {/* year header + editable theme word */}
           <div className="pb-6 text-center">
             <div className="serif text-3xl font-semibold tracking-tight">{year}</div>
@@ -131,8 +139,12 @@ export default function YearView() {
                 transition: 'background .18s, border-color .18s',
               };
               return (
-                <div
+                <motion.div
                   key={month}
+                  variants={riseItem}
+                  initial={zoomCount === 0 ? 'hidden' : false}
+                  animate="show"
+                  custom={i}
                   style={cellStyle}
                   onDragOver={allowDrop}
                   onDrop={dropOnMonth(month)}
@@ -156,7 +168,7 @@ export default function YearView() {
                       <span className="py-0.5 text-[11.5px] italic" style={{ color: 'var(--text-faint)' }}>＋ drop a goal</span>
                     )}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { Camera, Star, History, Sparkles, Loader2 } from 'lucide-react';
 import {
   monthLabel,
@@ -15,6 +16,7 @@ import { useVault } from '../state/store';
 import { PageHeader, Section } from '../components/ui';
 import { Markdown } from '../components/markdown';
 import { getAIProvider } from '../lib/ai';
+import { riseItem } from '../lib/motion';
 
 const MOODS = ['', '😞', '😕', '😐', '🙂', '😄'];
 
@@ -141,7 +143,11 @@ export default function LookbackView() {
             <p className="text-sm italic" style={{ color: 'var(--text-faint)' }}>Nothing yet — your months will appear here.</p>
           ) : (
             <div className="space-y-3">
-              {all.map((m) => <TimelineRow key={m.id} m={m} />)}
+              {all.map((m, i) => (
+                <motion.div key={m.id} variants={riseItem} initial="hidden" animate="show" custom={i}>
+                  <TimelineRow m={m} />
+                </motion.div>
+              ))}
             </div>
           )}
         </div>
