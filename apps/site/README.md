@@ -1,6 +1,12 @@
 # Marketing site
 
-A single, self-contained static landing page for Getsu (`index.html`, no build step, inline CSS/JS, moon + warm-paper design language matching the app). Heavy whitespace, the crescent-moon-and-cat mark with an opening animation, and one calm CTA into the app.
+A two-page static marketing site for Getsu (no build step, moon + warm-paper design language matching the app). Heavy whitespace, subtle enter-only motion, and calm CTAs into the app.
+
+- `index.html`: the landing page (animated mark hero, signature year grid, the monthly ritual, the three calm truths, a pricing whisper)
+- `pricing.html`: the pricing page, served at `/pricing` in production (Vercel `cleanUrls`); Free vs Premium cards, the "never a paywall on writing" promise, and a quiet FAQ
+- `site.css`: shared tokens, nav, buttons, footer, and motion primitives
+
+Entrance/reveal hiding is gated on a `.js` root class each page sets synchronously, so content stays visible with scripts disabled or rendering throttled.
 
 ## How it ships
 
