@@ -3,9 +3,11 @@ import {
   type Month,
   type MonthKey,
   type Goal,
+  type PhotoRef,
   yearMonthKeys,
   monthKeyLastYear,
   monthKey,
+  monthLabel,
 } from '@getsu/shared';
 
 /** The filled months of a year, in calendar order. */
@@ -227,5 +229,142 @@ export function buildYearInReview(vault: Vault, year: number): YearInReview {
     goalsActive: goals.filter((g) => g.status === 'active'),
     trackerTotals,
     averageMood: moods.length ? moods.reduce((a, b) => a + b, 0) / moods.length : undefined,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Reflect surface: photo memories + a whole-journey reflection
+// ---------------------------------------------------------------------------
+
+/** A photo memory: a photo with the month it belongs to, newest month first. */
+export interface PhotoMemory {
+  key: MonthKey;
+  label: string;
+  photo: PhotoRef;
+}
+
+/**
+ * Every photo the user has kept, across all months and goal check-ins, newest
+ * month first, the raw material for the Reflect surface's memories rail.
+ */
+export function photoMemories(vault: Vault): PhotoMemory[] {
+  const out: PhotoMemory[] = [];
+  for (const m of monthsNewestFirst(vault)) {
+    const label = monthLabel(m.id);
+    for (const p of m.photos) out.push({ key: m.id, label, photo: p });
+    for (const c of Object.values(m.goalCheckins)) {
+      for (const p of c.photos ?? []) out.push({ key: m.id, label, photo: p });
+    }
+  }
+  return out;
+}
+
+/**
+ * A distilled, provider-agnostic summary of everything in the vault, built once
+ * on the client and handed to the AI layer's {@link reflectOnJourney}. Keeping
+ * this pure (no DOM, no network) lets the reflection run identically offline
+ * (heuristic) and with a real model.
+ */
+export interface ReflectionMaterial {
+  monthsJournaled: number;
+  yearsTracked: number;
+  /** Titles of goals reached, across every year. */
+  goalsAchieved: string[];
+  /** Titles of active goals already placed into a month. */
+  goalsActive: string[];
+  /** Titles of active goals still unplaced on the board. */
+  goalsUnplanned: string[];
+  /** Best moments: explicit highlights plus bullet lines mined from reflections. */
+  highlights: string[];
+  /** A few recent months as label + lead sentence(s). */
+  recentReflections: { label: string; text: string }[];
+  struggles: string[];
+  averageMood?: number;
+  brightestMonth?: string;
+  quietestMonth?: string;
+  trackerTotals: { name: string; total: number; unit?: string; target?: number }[];
+  photoCount: number;
+}
+
+function stripMd(s: string): string {
+  return s.replace(/[#>*`_]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function leadSentences(text: string, n = 2): string {
+  const clean = stripMd(text);
+  if (!clean) return '';
+  return clean.split(/(?<=[.!?])\s+/).slice(0, n).join(' ');
+}
+
+function reflectionBullets(text: string): string[] {
+  return text
+    .split('\n')
+    .map((l) => l.match(/^\s*[-*]\s+(.*)$/)?.[1] ?? '')
+    .map((l) => stripMd(l))
+    .filter(Boolean);
+}
+
+export function buildReflectionMaterial(vault: Vault): ReflectionMaterial {
+  const months = monthsNewestFirst(vault);
+  // Newest year first, so the most recent goals lead the reflection.
+  const goalsAll = Object.values(vault.years)
+    .sort((a, b) => b.year - a.year)
+    .flatMap((y) => y.goals);
+
+  // Highlights: explicit month highlights plus bullet lines mined from the
+  // reflections themselves (the demo/journal writes moments as bullets), deduped.
+  const seen = new Set<string>();
+  const highlights: string[] = [];
+  for (const m of months) {
+    for (const h of [...m.highlights, ...reflectionBullets(m.reflection)]) {
+      const k = h.toLowerCase();
+      if (h && !seen.has(k)) { seen.add(k); highlights.push(h); }
+    }
+  }
+
+  const recentReflections = months
+    .filter((m) => stripMd(m.reflection))
+    .slice(0, 4)
+    .map((m) => ({ label: monthLabel(m.id), text: leadSentences(m.reflection) }));
+
+  const moodMonths = months.filter((m): m is Month & { mood: number } => typeof m.mood === 'number');
+  const averageMood = moodMonths.length
+    ? moodMonths.reduce((a, m) => a + m.mood, 0) / moodMonths.length
+    : undefined;
+  const brightest = moodMonths.reduce<(typeof moodMonths)[number] | undefined>((best, m) => (!best || m.mood > best.mood ? m : best), undefined);
+  const quietest = moodMonths.reduce<(typeof moodMonths)[number] | undefined>((low, m) => (!low || m.mood < low.mood ? m : low), undefined);
+
+  const trackerTotals = vault.trackers
+    .filter((t) => t.active)
+    .map((t) => {
+      let total = 0;
+      for (const m of months) {
+        const v = m.trackers[t.id];
+        if (typeof v === 'number') total += v;
+        else if (v === true) total += 1;
+      }
+      return { name: t.name, total, unit: t.unit, target: t.target };
+    })
+    .filter((x) => x.total > 0);
+
+  const photoCount = months.reduce(
+    (n, m) => n + m.photos.length + Object.values(m.goalCheckins).reduce((k, c) => k + (c.photos?.length ?? 0), 0),
+    0,
+  );
+
+  return {
+    monthsJournaled: months.length,
+    yearsTracked: Object.keys(vault.years).length,
+    goalsAchieved: goalsAll.filter((g) => g.status === 'done').map((g) => g.title),
+    goalsActive: goalsAll.filter((g) => g.status === 'active' && g.plannedMonth != null).map((g) => g.title),
+    goalsUnplanned: goalsAll.filter((g) => g.status === 'active' && g.plannedMonth == null).map((g) => g.title),
+    highlights: highlights.slice(0, 10),
+    recentReflections,
+    struggles: months.flatMap((m) => m.struggles).slice(0, 6),
+    averageMood,
+    brightestMonth: brightest ? monthLabel(brightest.id) : undefined,
+    quietestMonth: quietest ? monthLabel(quietest.id) : undefined,
+    trackerTotals,
+    photoCount,
   };
 }

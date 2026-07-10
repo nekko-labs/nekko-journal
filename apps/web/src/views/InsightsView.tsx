@@ -18,6 +18,18 @@ function fmt(n: number): string {
 }
 
 export default function InsightsView() {
+  return (
+    <div>
+      <h1 className="serif mb-1.5 mt-1.5 text-3xl font-semibold tracking-tight">Insights</h1>
+      <p className="mb-6 text-[13.5px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>Everything you've done, at a month scale.</p>
+      <InsightsPanel />
+    </div>
+  );
+}
+
+/** The insights body (stat tiles, goals chart, progress, trackers) without a page
+ * header — embedded both in the standalone Insights route and in the You surface. */
+export function InsightsPanel() {
   const navigate = useNavigate();
   const vault = useVault((s) => s.vault)!;
   const currentYear = useVault((s) => s.currentYear);
@@ -58,9 +70,6 @@ export default function InsightsView() {
   return (
     // Page entrance comes from the route transition in App.tsx.
     <div>
-      <h1 className="serif mb-1.5 mt-1.5 text-3xl font-semibold tracking-tight">Insights</h1>
-      <p className="mb-6 text-[13.5px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>Everything you've done, at a month scale.</p>
-
       {/* all-time stat tiles */}
       <div className="mb-3.5 text-[10.5px] font-semibold uppercase tracking-[1.6px]" style={{ color: 'var(--text-faint)' }}>All time</div>
       <div className="grid grid-cols-3 gap-x-3 gap-y-6">

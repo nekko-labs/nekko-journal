@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { MotionConfig, motion } from 'motion/react';
-import { Calendar, Target, BarChart3, User, Sparkles } from 'lucide-react';
+import { Calendar, Target, Sparkles, User } from 'lucide-react';
 import { EASE_OUT } from './lib/motion';
 import { useVault } from './state/store';
 import { useCloud } from './state/cloud';
@@ -13,6 +13,7 @@ import YearView from './views/YearView';
 import MonthView from './views/MonthView';
 import GoalsView from './views/GoalsView';
 import InsightsView from './views/InsightsView';
+import ReflectView from './views/ReflectView';
 import YouView from './views/YouView';
 import LookbackView from './views/LookbackView';
 import YearsView from './views/YearsView';
@@ -39,7 +40,7 @@ function useTabs() {
   return [
     { to: `/year/${year}`, match: '/year', label: 'Year', icon: <Calendar size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
     { to: `/goals/${year}`, match: '/goals', label: 'Goals', icon: <Target size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
-    { to: '/insights', match: '/insights', label: 'Insights', icon: <BarChart3 size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
+    { to: '/reflect', match: '/reflect', label: 'Reflect', icon: <Sparkles size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
     { to: '/you', match: '/you', label: 'You', icon: <User size={TAB_ICON_SIZE} strokeWidth={1.7} /> },
   ];
 }
@@ -163,6 +164,7 @@ export default function App() {
             <Route path="/month/:key" element={<MonthView />} />
             <Route path="/goals/:year" element={<GoalsView />} />
             <Route path="/insights" element={<InsightsView />} />
+            <Route path="/reflect" element={<ReflectView />} />
             <Route path="/you" element={<YouView />} />
             <Route path="/years" element={<YearsView />} />
             <Route path="/lookback" element={<LookbackView />} />

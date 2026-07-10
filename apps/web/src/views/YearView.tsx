@@ -1,12 +1,15 @@
 import { useState, type CSSProperties, type DragEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ChevronRight, Plus } from 'lucide-react';
+import { ChevronRight, Plus, Camera } from 'lucide-react';
 import {
   type Goal,
+  type Month,
   MONTH_NAMES,
   monthKey,
   goalColor,
+  countMonthPhotos,
+  isMonthFilled,
   addGoal as addGoalCore,
   updateGoal,
   setGoalPlannedMonth,
@@ -32,7 +35,8 @@ export default function YearView() {
   const goals = yearObj?.goals ?? EMPTY_GOALS;
   const themeWord = yearObj?.theme ?? '';
 
-  const [zoom, setZoom] = useState<Zoom>('grid');
+  // Timeline is the calm default: a clean, journaling-first scroll of the year.
+  const [zoom, setZoom] = useState<Zoom>('list');
   const [zoomDir, setZoomDir] = useState<'in' | 'out'>('in');
   // 0 until the user first changes zoom level; the initial mount plays the
   // month-cell cascade instead of the semantic-zoom animation, which only
@@ -230,35 +234,35 @@ export default function YearView() {
       )}
 
       {zoom === 'list' && (
-        <div key={`list-${year}`} className={zoomClass}>
-          <div className="serif mb-3 text-center text-[32px] font-semibold tracking-tight">{year}</div>
+        <div key={`list-${year}`} className={zoomCount > 0 ? zoomClass : undefined}>
+          {/* year header + editable theme word */}
+          <div className="pb-6 text-center">
+            <div className="serif text-[32px] font-semibold tracking-tight">{year}</div>
+            <input
+              value={themeWord}
+              onChange={(e) => mutate((v) => setYearTheme(v, year, e.target.value))}
+              placeholder="a word for the year"
+              className="serif mt-1 w-full bg-transparent text-center text-[15px] italic outline-none"
+              style={{ color: 'var(--text-soft)' }}
+            />
+          </div>
+
           <div className="flex flex-col">
             {MONTH_NAMES.map((name, i) => {
               const month = i + 1;
+              const m = vault.months[monthKey(year, month)];
               const mg = goals.filter((g) => g.plannedMonth === month);
               return (
-                <button
-                  key={month}
-                  onClick={() => openMonth(month)}
-                  className="-mx-2 rounded-2xl px-2 py-4 text-left transition hover:bg-[var(--surface-2)]"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="serif text-2xl font-semibold" style={{ color: 'var(--text)' }}>{name}</span>
-                    <ChevronRight size={18} style={{ color: 'var(--text-faint)' }} />
-                  </div>
-                  {isCurrent(month) && (
-                    <span className="mt-0.5 block text-[9px] font-bold uppercase tracking-[1.2px]" style={{ color: 'var(--accent)' }}>this month</span>
-                  )}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {mg.map((g) => (
-                      <span key={g.id} className="inline-flex items-center gap-2 rounded-full px-3 py-1.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                        <span className="h-2 w-2 rounded-full" style={{ background: g.color ?? 'var(--accent)' }} />
-                        <span className="text-[12.5px] font-medium" style={{ color: 'var(--text)', textDecoration: g.status === 'done' ? 'line-through' : 'none', opacity: g.status === 'done' ? 0.6 : 1 }}>{g.title}</span>
-                      </span>
-                    ))}
-                    {mg.length === 0 && <span className="text-[13px] italic" style={{ color: 'var(--text-faint)' }}>nothing planned</span>}
-                  </div>
-                </button>
+                <motion.div key={month} variants={riseItem} initial={zoomCount === 0 ? 'hidden' : false} animate="show" custom={i}>
+                  <TimelineRow
+                    name={name}
+                    month={m}
+                    current={isCurrent(month)}
+                    future={isFuture(year, month, currentYear, currentMonth)}
+                    plannedCount={mg.length}
+                    onOpen={() => openMonth(month)}
+                  />
+                </motion.div>
               );
             })}
           </div>
@@ -269,6 +273,69 @@ export default function YearView() {
         Tip: ctrl + scroll to zoom Years ⇄ Year ⇄ Timeline · drag a goal onto a month to plan it
       </p>
     </div>
+  );
+}
+
+// A month sits in the future when it hasn't happened yet in the current year, or
+// belongs to any year past the current one. Future/empty months read faint.
+function isFuture(year: number, month: number, curYear: number, curMonth: number): boolean {
+  return year > curYear || (year === curYear && month > curMonth);
+}
+
+/** A plain-text lead of a month's journal for the timeline preview. */
+function snippet(md: string, n = 104): string {
+  const clean = md.replace(/[#>*`_]/g, ' ').replace(/^\s*[-*]\s*/gm, '').replace(/\s+/g, ' ').trim();
+  return clean.length > n ? `${clean.slice(0, n).trimEnd()}…` : clean;
+}
+
+// A calm, journaling-first timeline row: the month leads with its journal
+// snippet; goals and photos are demoted to a quiet meta line; future/empty
+// months fade back so the written ones carry the eye.
+function TimelineRow({
+  name,
+  month,
+  current,
+  future,
+  plannedCount,
+  onOpen,
+}: {
+  name: string;
+  month: Month | undefined;
+  current: boolean;
+  future: boolean;
+  plannedCount: number;
+  onOpen: () => void;
+}) {
+  const filled = isMonthFilled(month);
+  const preview = month?.reflection ? snippet(month.reflection) : '';
+  const photos = countMonthPhotos(month);
+  const dim = future && !filled;
+
+  return (
+    <button
+      onClick={onOpen}
+      className="-mx-2 flex w-full items-start gap-4 rounded-2xl px-2 py-4 text-left transition hover:bg-[var(--surface-2)]"
+      style={{ opacity: dim ? 0.42 : 1 }}
+    >
+      <div className="w-24 shrink-0 pt-0.5">
+        <div className="serif text-[22px] font-semibold leading-tight" style={{ color: filled || current ? 'var(--text)' : 'var(--text-faint)' }}>{name}</div>
+        {current && <div className="mt-1 text-[9px] font-bold uppercase tracking-[1.2px]" style={{ color: 'var(--accent)' }}>this month</div>}
+      </div>
+      <div className="min-w-0 flex-1 pt-0.5">
+        {preview ? (
+          <p className="line-clamp-2 text-[14px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>{preview}</p>
+        ) : (
+          <p className="text-[13.5px] italic" style={{ color: 'var(--text-faint)' }}>{future ? 'yet to come' : 'nothing written yet'}</p>
+        )}
+        {(plannedCount > 0 || photos > 0) && (
+          <div className="mt-2 flex items-center gap-3 text-[11px]" style={{ color: 'var(--text-faint)' }}>
+            {plannedCount > 0 && <span>{plannedCount} {plannedCount === 1 ? 'goal' : 'goals'}</span>}
+            {photos > 0 && <span className="flex items-center gap-1"><Camera size={11} /> {photos}</span>}
+          </div>
+        )}
+      </div>
+      <ChevronRight size={18} className="mt-1 shrink-0" style={{ color: 'var(--text-faint)' }} />
+    </button>
   );
 }
 
