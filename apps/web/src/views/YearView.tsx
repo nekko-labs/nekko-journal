@@ -382,14 +382,18 @@ function TimelineRow({
   return (
     <button
       onClick={onOpen}
-      className="group -mx-3 block w-full rounded-3xl px-3 py-3 text-left transition hover:bg-[var(--surface-2)]"
+      className="group -mx-3 block w-full rounded-3xl px-3 py-3 text-left"
       style={{ opacity: dim ? 0.4 : 1 }}
     >
-      <div className="flex items-baseline gap-3.5">
+      <div className="flex items-baseline gap-3.5 pt-1">
         <h3
           onClick={(e) => { e.stopPropagation(); setRevealed((r) => !r); }}
-          className={`serif text-[56px] font-semibold leading-none tracking-tight ${pearl ? 'pearl-text' : ''}`}
-          style={pearl ? { letterSpacing: '-1px' } : { color: 'var(--text-faint)', letterSpacing: '-1px' }}
+          className={`serif text-[56px] font-semibold leading-[1.12] tracking-tight transition-[filter,color] duration-300 ${
+            pearl
+              ? 'pearl-text group-hover:[filter:saturate(1.4)_contrast(1.06)_brightness(0.94)]'
+              : 'text-[var(--text-faint)] group-hover:text-[var(--text-soft)]'
+          }`}
+          style={{ letterSpacing: '-1px' }}
         >
           {monthNum}
         </h3>
@@ -404,9 +408,9 @@ function TimelineRow({
       </div>
 
       {preview ? (
-        <p className="mt-3.5 line-clamp-2 text-[15px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>{preview}</p>
+        <p className="mt-3.5 line-clamp-2 text-[15px] leading-relaxed text-[var(--text-soft)] transition-colors duration-300 group-hover:text-[var(--text)]">{preview}</p>
       ) : (
-        <p className="mt-3.5 text-[14px] italic" style={{ color: 'var(--text-faint)' }}>{future ? 'yet to come' : 'nothing written yet'}</p>
+        <p className="mt-3.5 text-[14px] italic text-[var(--text-faint)] transition-colors duration-300 group-hover:text-[var(--text-soft)]">{future ? 'yet to come' : 'nothing written yet'}</p>
       )}
 
       {goals.length > 0 && (

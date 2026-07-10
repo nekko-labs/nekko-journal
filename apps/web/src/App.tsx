@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { MotionConfig, motion } from 'motion/react';
 import { Calendar, Target, Sparkles, User } from 'lucide-react';
@@ -79,29 +79,68 @@ function TopNav() {
   );
 }
 
+/** True for a short beat after the active tab changes — used to flash the tab label. */
+function useActiveFlash(activeMatch: string): boolean {
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    setFlash(true);
+    const id = setTimeout(() => setFlash(false), 1500);
+    return () => clearTimeout(id);
+  }, [activeMatch]);
+  return flash;
+}
+
+/**
+ * A bottom-bar tab: just the icon, which lifts on hover and pops when its tab
+ * becomes active. The label (the page name) is hidden, fading in on hover and
+ * flashing in-then-out for a beat whenever you switch to this tab.
+ */
+function MobileTab({ tab, active, flash }: { tab: ReturnType<typeof useTabs>[number]; active: boolean; flash: boolean }) {
+  return (
+    <NavLink
+      to={tab.to}
+      className="group relative flex flex-1 flex-col items-center gap-1 py-1"
+      style={{ color: active ? 'var(--accent)' : 'var(--text-faint)' }}
+    >
+      <motion.span
+        aria-hidden
+        className="block"
+        whileHover={{ y: -3, scale: 1.14 }}
+        whileTap={{ scale: 0.9 }}
+        animate={active ? { scale: [1, 1.28, 1], y: [0, -3, 0] } : { scale: 1, y: 0 }}
+        transition={{ duration: 0.42, ease: EASE_OUT }}
+      >
+        {tab.icon}
+      </motion.span>
+      <span
+        data-flash={flash ? '1' : undefined}
+        className="pointer-events-none text-[10px] font-semibold leading-none opacity-0 transition-opacity duration-300 group-hover:opacity-100 data-[flash=1]:opacity-100"
+      >
+        {tab.label}
+      </span>
+    </NavLink>
+  );
+}
+
 function BottomTabs() {
   const tabs = useTabs();
   const { pathname } = useLocation();
+  const activeMatch = tabs.find((t) => pathname.startsWith(t.match))?.match ?? '';
+  const flash = useActiveFlash(activeMatch);
   return (
     <nav
-      className="shrink-0 border-t md:hidden"
-      style={{ borderColor: 'var(--border)', background: 'var(--bg)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="shrink-0 md:hidden"
+      style={{ background: 'var(--bg)', paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="flex items-stretch justify-around px-2 py-1.5">
-        {tabs.map((t) => {
-          const active = pathname.startsWith(t.match);
-          return (
-            <NavLink
-              key={t.match}
-              to={t.to}
-              className="flex flex-1 flex-col items-center gap-1 py-1 transition-transform active:scale-95"
-              style={{ color: active ? 'var(--accent)' : 'var(--text-faint)' }}
-            >
-              {t.icon}
-              <span className="text-[10px] font-semibold">{t.label}</span>
-            </NavLink>
-          );
-        })}
+        {tabs.map((t) => (
+          <MobileTab
+            key={t.match}
+            tab={t}
+            active={pathname.startsWith(t.match)}
+            flash={activeMatch === t.match && flash}
+          />
+        ))}
       </div>
     </nav>
   );
