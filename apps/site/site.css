@@ -1,0 +1,84 @@
+/* Getsu marketing site: warm paper, calm ocean.
+   Shared by index.html and pricing.html. Whitespace is the design;
+   motion is enter-only, ease-out, and respects reduced motion. */
+
+:root {
+  --bg:#fbf7f1; --surface:#fffdfa; --border:#eae1d4;
+  --text:#2b2724; --soft:#7a726a; --faint:#a89f93;
+  --accent:#3e8fa0; --accent-soft:rgba(62,143,160,.09);
+  --mood-1:#9ba6c9; --mood-2:#a9c0d0; --mood-3:#c9c2ba; --mood-4:#9fc6b0; --mood-5:#f4c15b;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --shadow:0 2px 8px rgba(43,39,36,.05), 0 24px 60px -28px rgba(43,39,36,.28);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#1c1a18; --surface:#262320; --border:#38332c;
+    --text:#ede6dc; --soft:#a39a90; --faint:#756f62;
+    --accent:#6fb3c2; --accent-soft:rgba(111,179,194,.12);
+    --shadow:0 2px 8px rgba(0,0,0,.35), 0 24px 60px -28px rgba(0,0,0,.7);
+  }
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  background:var(--bg); color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+.serif { font-family:Fraunces,Georgia,"Times New Roman",serif; }
+a { color:inherit; text-decoration:none; }
+.wrap { width:100%; max-width:760px; margin:0 auto; padding:0 28px; }
+
+/* ── nav ─────────────────────────────────────────────── */
+.nav { display:flex; align-items:center; justify-content:space-between;
+  max-width:960px; margin:0 auto; padding:26px 28px; }
+.nav .brand { display:inline-flex; align-items:center; gap:9px; font-size:16px; }
+.nav .brand img { width:26px; height:26px; border-radius:7px; }
+.nav .links { display:flex; align-items:center; gap:26px; font-size:14px; font-weight:500; }
+.nav .links a { color:var(--soft); transition:color .2s var(--ease); }
+.nav .links a:hover, .nav .links a[aria-current="page"] { color:var(--text); }
+.nav .links .go { color:var(--accent); font-weight:600; }
+.nav .links .go:hover { color:var(--accent); opacity:.8; }
+@media (max-width:420px) {
+  .nav { padding:22px 20px; }
+  .nav .links { gap:16px; font-size:13.5px; }
+}
+
+/* ── buttons ─────────────────────────────────────────── */
+.btn { display:inline-flex; align-items:center; gap:9px; border-radius:999px;
+  padding:13px 26px; font-weight:600; font-size:15px;
+  transition:transform .15s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease); }
+.btn:active { transform:scale(.98); }
+.btn-primary { background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(43,39,36,.06); }
+.btn-primary:hover { box-shadow:var(--shadow); transform:translateY(-1px); }
+.btn-ghost { border:1px solid var(--border); color:var(--text); background:var(--surface); }
+.btn-ghost:hover { border-color:var(--faint); transform:translateY(-1px); }
+.btn-quiet { color:var(--soft); }
+.btn-quiet:hover { color:var(--text); }
+.cta-row { display:flex; gap:14px; justify-content:center; align-items:center; flex-wrap:wrap; }
+
+/* ── footer ──────────────────────────────────────────── */
+footer { border-top:1px solid var(--border); padding:44px 0 64px; text-align:center; color:var(--faint); font-size:13.5px; }
+footer .fmark { width:26px; height:26px; vertical-align:middle; margin-right:6px; border-radius:6px; }
+footer a { color:var(--accent); font-weight:600; }
+footer .sub { margin-top:8px; }
+footer .sub a { color:var(--faint); font-weight:500; text-decoration:underline; text-decoration-color:var(--border); text-underline-offset:3px; }
+footer .sub a:hover { color:var(--soft); }
+
+/* ── motion primitives ───────────────────────────────── */
+/* Hiding is opt-in via the .js root class (set synchronously by each page's
+   script), so no-JS readers and throttled background tabs still see content. */
+/* load-time entrance */
+.js .an { opacity:0; }
+.an.play { animation:rise .8s var(--ease) both; }
+/* scroll-triggered reveal */
+.js .sr { opacity:0; }
+.sr.in { animation:rise .7s var(--ease) both; }
+@keyframes rise   { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+@keyframes rise-s { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior:auto; }
+  .an, .an.play, .sr, .sr.in { opacity:1 !important; animation:none !important; }
+}
