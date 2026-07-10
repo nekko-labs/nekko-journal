@@ -247,7 +247,7 @@ export default function YearView() {
             />
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-12">
             {MONTH_NAMES.map((name, i) => {
               const month = i + 1;
               const m = vault.months[monthKey(year, month)];
@@ -310,15 +310,22 @@ function TimelineRow({
   const preview = month?.reflection ? snippet(month.reflection) : '';
   const photos = countMonthPhotos(month);
   const dim = future && !filled;
+  // The months that hold something get the pearlescent sheen; empty ones stay quiet.
+  const pearl = filled || current;
 
   return (
     <button
       onClick={onOpen}
-      className="-mx-3 block w-full rounded-3xl px-3 py-6 text-left transition hover:bg-[var(--surface-2)]"
+      className="-mx-3 block w-full rounded-3xl px-3 py-3 text-left transition hover:bg-[var(--surface-2)]"
       style={{ opacity: dim ? 0.4 : 1 }}
     >
       <div className="flex items-baseline gap-3">
-        <h3 className="serif text-[30px] font-semibold leading-none tracking-tight" style={{ color: filled || current ? 'var(--text)' : 'var(--text-faint)', letterSpacing: '-0.5px' }}>{name}</h3>
+        <h3
+          className={`serif text-[30px] font-semibold leading-none tracking-tight ${pearl ? 'pearl-text' : ''}`}
+          style={pearl ? { letterSpacing: '-0.5px' } : { color: 'var(--text-faint)', letterSpacing: '-0.5px' }}
+        >
+          {name}
+        </h3>
         {current && <span className="text-[9.5px] font-bold uppercase tracking-[1.3px]" style={{ color: 'var(--accent)' }}>this month</span>}
       </div>
 

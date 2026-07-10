@@ -18,6 +18,9 @@
   --accent-2: #7fbfca;    /* lighter teal for gradients */
   --accent-soft: #e6eff1;
   --grad: linear-gradient(135deg, #3e8fa0, #7fbfca);
+  /* Subtle pearlescent sheen for the timeline month titles: mid-tone, legible
+     on cream, hue-shifting slate → mauve → ocean → warm gold. */
+  --pearl: linear-gradient(102deg, #66789f 0%, #8d7ba3 28%, #4f96a0 60%, #b58f57 100%);
 
   /* Mood scale 1→5 (low → joyful). Used as the year-grid color primitive. */
   --mood-1: #9ba6c9;      /* low / blue */
@@ -53,6 +56,8 @@
   --accent-2: #47899b;
   --accent-soft: #21323a;
   --grad: linear-gradient(135deg, #6fb3c2, #47899b);
+  /* Lighter, luminous pearl for dark paper. */
+  --pearl: linear-gradient(102deg, #aebbdd 0%, #c9b4dc 28%, #93d0d4 60%, #eccf8c 100%);
 
   --mood-1: #8a93b4;
   --mood-2: #8fa6b6;
@@ -71,6 +76,16 @@
 
 html, body, #root {
   height: 100%;
+}
+
+/* Pearlescent text fill (timeline month titles). Falls back to the set color
+   in the rare browser without background-clip: text. */
+.pearl-text {
+  background: var(--pearl);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 body {
