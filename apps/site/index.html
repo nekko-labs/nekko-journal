@@ -24,28 +24,118 @@
   <link rel="stylesheet" href="/site.css" />
   <style>
     /* ── hero: heavy whitespace ─────────────────────────── */
-    .hero { text-align:center; padding:96px 0 96px; }
+    .hero { text-align:center; padding:88px 0 40px; }
     .mark { width:104px; height:104px; margin:0 auto 40px; display:block; }
     .hero h1 { font-size:clamp(42px,7.5vw,72px); font-weight:600; line-height:1.03; letter-spacing:-2px; }
     .hero .tag { font-size:clamp(21px,3.4vw,30px); font-style:italic; color:var(--soft); margin-top:12px; }
     .hero p.lead { max-width:520px; margin:32px auto 0; font-size:17.5px; color:var(--soft); }
     .hero .cta-row { margin-top:44px; }
 
-    /* ── signature year grid ────────────────────────────── */
-    .grid-card { max-width:520px; margin:96px auto 0; background:var(--surface);
-      border:1px solid var(--border); border-radius:26px; padding:28px; box-shadow:var(--shadow); }
-    .grid-card .yr { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:18px; }
-    .grid-card .yr b { font-size:22px; }
-    .grid-card .yr em { color:var(--faint); font-style:normal; font-size:13px; letter-spacing:.5px; }
-    .months { display:grid; grid-template-columns:repeat(4,1fr); gap:11px; }
-    .mo { aspect-ratio:1.4; border-radius:15px; display:flex; align-items:flex-end; padding:9px;
-      font-size:11px; font-weight:600; color:rgba(0,0,0,.5);
-      transition:transform .3s var(--ease); }
-    .mo:hover { transform:translateY(-3px); }
-    @media (prefers-color-scheme: dark) { .mo { color:rgba(255,255,255,.72); } }
+    /* ── the phone demo: the hero's centerpiece ─────────── */
+    /* A device mockup that plays a looping walk-through of the app,
+       recreated in HTML so it stays crisp, themeable, and dependency-free
+       (no bundled video, no animation library, CSP-clean). */
+    .stage { padding:56px 0 8px; perspective:1400px; }
+    .phone {
+      position:relative; width:290px; margin:0 auto;
+      aspect-ratio:290 / 600; border-radius:46px;
+      background:linear-gradient(155deg,#3a3531,#211d1a); padding:11px;
+      box-shadow:0 2px 6px rgba(43,39,36,.18), 0 44px 90px -34px rgba(43,39,36,.55),
+        inset 0 0 0 1.5px rgba(255,255,255,.08);
+      will-change:transform;
+    }
+    @media (prefers-color-scheme: dark) {
+      .phone { background:linear-gradient(155deg,#0e0c0b,#000); box-shadow:0 2px 6px rgba(0,0,0,.5), 0 44px 90px -34px rgba(0,0,0,.85), inset 0 0 0 1.5px rgba(255,255,255,.05); }
+    }
+    .phone-screen {
+      position:relative; width:100%; height:100%; border-radius:36px; overflow:hidden;
+      background:var(--bg); display:flex; flex-direction:column;
+    }
+    .phone-island {
+      position:absolute; top:12px; left:50%; transform:translateX(-50%);
+      width:78px; height:20px; background:#08070a; border-radius:999px; z-index:20;
+    }
+    /* soft top/bottom fades keep the screen edges tidy under the radius */
+    .phone-screen::after {
+      content:""; position:absolute; inset:0; pointer-events:none; z-index:15;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+      border-radius:36px;
+    }
+
+    /* status bar */
+    .st { display:flex; align-items:center; justify-content:space-between;
+      padding:14px 22px 6px; font-size:11px; font-weight:600; color:var(--text); flex:0 0 auto; z-index:16; }
+    .st .dots { display:inline-flex; gap:3px; align-items:center; }
+    .st .dots i { width:4px; height:4px; border-radius:50%; background:var(--faint); display:inline-block; }
+
+    /* the screen carousel */
+    .screens { position:relative; flex:1; overflow:hidden; }
+    .scr { position:absolute; inset:0; padding:6px 16px 0; opacity:0;
+      transform:scale(1.02); transition:opacity .7s var(--ease), transform .7s var(--ease); overflow:hidden; }
+    .scr.on { opacity:1; transform:scale(1); }
+    .scr .cap { font-size:9px; letter-spacing:1.6px; font-weight:600; color:var(--faint); text-align:center; margin-bottom:8px; }
+
+    /* segmented control */
+    .seg { display:flex; background:var(--surface-2,#f0eae0); border-radius:11px; padding:3px; gap:2px; font-size:10px; font-weight:600; margin-bottom:12px; }
+    .seg span { flex:1; text-align:center; padding:5px 0; border-radius:8px; color:var(--soft); }
+    .seg span.a { background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(43,39,36,.08); }
+
+    .scr h3.yr { font-family:Fraunces,serif; font-size:20px; font-weight:600; letter-spacing:-.5px; }
+    .scr .word { font-size:8.5px; letter-spacing:1.6px; color:var(--faint); font-weight:600; }
+    .yhead { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px; }
+
+    /* timeline month rows */
+    .mrow { display:flex; gap:9px; padding:8px 0; border-top:1px solid var(--border); }
+    .mrow:first-child { border-top:0; }
+    .mrow .dot { flex:0 0 8px; width:8px; height:8px; border-radius:50%; margin-top:4px; }
+    .mrow .mo-n { font-family:Fraunces,serif; font-size:12px; color:var(--text); font-weight:600; }
+    .mrow .lead { font-size:9.5px; color:var(--soft); line-height:1.45; margin-top:1px;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .mrow.faint .mo-n { color:var(--faint); }
+    .mrow.faint .lead { color:var(--faint); font-style:italic; }
+    .mrow .now { font-size:7px; letter-spacing:1px; font-weight:700; color:#fff; background:var(--accent); border-radius:5px; padding:2px 5px; margin-left:6px; vertical-align:middle; }
+    .chip { display:inline-block; font-size:8px; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:2px 6px; margin-top:4px; margin-right:4px; }
+
+    /* month view */
+    .mv-back { font-size:9.5px; color:var(--soft); }
+    .mv-title { font-family:Fraunces,serif; font-size:22px; font-weight:600; letter-spacing:-.6px; margin:2px 0 12px; }
+    .lbl { font-size:8.5px; letter-spacing:1.4px; font-weight:600; color:var(--faint); margin:14px 0 6px; }
+    .lbl:first-of-type { margin-top:0; }
+    .jr h4 { font-family:Fraunces,serif; font-size:13px; font-weight:600; margin-bottom:4px; }
+    .jr p { font-size:10px; color:var(--soft); line-height:1.5; }
+    .jr ul { margin:5px 0 0 4px; padding:0; list-style:none; }
+    .jr li { font-size:10px; color:var(--soft); line-height:1.55; padding-left:12px; position:relative; }
+    .jr li::before { content:"·"; position:absolute; left:2px; color:var(--accent); font-weight:700; }
+    .goal { display:flex; align-items:center; gap:8px; padding:7px 9px; background:var(--surface); border:1px solid var(--border); border-radius:11px; margin-bottom:6px; }
+    .goal .box { flex:0 0 14px; width:14px; height:14px; border-radius:5px; border:1.5px solid var(--border); position:relative; }
+    .goal.done .box { background:var(--accent); border-color:var(--accent); }
+    .goal.done .box::after { content:"✓"; position:absolute; inset:0; color:#fff; font-size:9px; text-align:center; line-height:11px; }
+    .goal span { font-size:10.5px; color:var(--text); }
+    .goal.done span { color:var(--soft); }
+    .trk { display:flex; align-items:center; justify-content:space-between; padding:6px 2px; font-size:10px; }
+    .trk b { font-weight:600; }
+    .trk .val { color:var(--accent); font-weight:600; }
+
+    /* goals view */
+    .gline { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; background:var(--surface); border:1px solid var(--border); border-radius:11px; margin-bottom:6px; }
+    .gline span { font-size:10.5px; color:var(--text); }
+    .gline em { font-size:8px; letter-spacing:.5px; font-style:normal; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:2px 6px; }
+    .gline.un em { color:var(--faint); background:transparent; font-style:italic; }
+
+    /* bottom tab bar */
+    .tabs { flex:0 0 auto; display:flex; justify-content:space-around; padding:9px 8px 16px;
+      border-top:1px solid var(--border); background:var(--surface); }
+    .tabs a { font-size:9px; color:var(--faint); font-weight:600; display:flex; flex-direction:column; align-items:center; gap:3px; }
+    .tabs a.a { color:var(--accent); }
+    .tabs a b { width:15px; height:15px; border-radius:5px; background:currentColor; opacity:.85; display:block; }
+
+    /* progress ticks under the phone */
+    .ticks { display:flex; gap:7px; justify-content:center; margin-top:26px; }
+    .ticks button { width:7px; height:7px; border-radius:50%; border:0; background:var(--border); padding:0; cursor:pointer; transition:background .3s var(--ease), transform .3s var(--ease); }
+    .ticks button.a { background:var(--accent); transform:scale(1.25); }
 
     /* ── how it works: three quiet steps ────────────────── */
-    .steps { padding:136px 0 0; }
+    .steps { padding:128px 0 0; }
     .steps .kicker { text-align:center; font-size:13px; letter-spacing:2.5px; color:var(--faint); font-weight:600; margin-bottom:64px; }
     .step { max-width:560px; margin:0 auto 72px; display:flex; gap:26px; align-items:baseline; }
     .step:last-child { margin-bottom:0; }
@@ -69,8 +159,6 @@
     .price .more:hover { color:var(--text); border-color:var(--faint); }
 
     /* ── mark opening animation ─────────────────────────── */
-    .js .grid-card .mo { opacity:0; }
-    .grid-card.play .mo { animation:rise-s .6s var(--ease) both; }
     #m-glow { transform-origin:252px 206px; }
     /* bloom first, then a very slow breathing pulse once the entrance settles */
     .play #m-glow { animation:bloom 1s var(--ease) .1s both, breathe 7s ease-in-out 1.1s infinite alternate; }
@@ -83,12 +171,19 @@
     @keyframes settle { from { opacity:0; transform:translateY(-34px); } to { opacity:1; transform:translateY(0); } }
     @keyframes blink  { from { opacity:0; transform:scaleY(.05); } to { opacity:1; transform:scaleY(1); } }
 
+    /* the iPhone rises + fades in on load; a scroll handler adds gentle parallax */
+    .js .stage .phone { opacity:0; }
+    .stage.play .phone { animation:phone-rise 1.1s var(--ease) .5s both; }
+    @keyframes phone-rise { from { opacity:0; transform:translateY(72px) scale(.92); } to { opacity:1; transform:translateY(0) scale(1); } }
+
     @media (prefers-reduced-motion: reduce) {
-      .grid-card .mo { opacity:1 !important; animation:none !important; }
       #m-glow,#m-moon,#m-cat,#m-eyes { animation:none !important; opacity:1 !important; transform:none !important; }
+      .scr { transition:none !important; }
+      .stage .phone { opacity:1 !important; animation:none !important; transform:none !important; }
     }
     @media (max-width:640px) {
-      .hero { padding:64px 0 72px; }
+      .hero { padding:60px 0 24px; }
+      .stage { padding-top:40px; }
       .steps, .truths { padding-top:104px; }
       .step { margin-bottom:56px; }
       .price { padding:104px 0 96px; }
@@ -140,10 +235,71 @@
         <a class="btn btn-primary" href="/app/">Open the app</a>
         <a class="btn btn-quiet" href="/pricing">See pricing →</a>
       </div>
+    </section>
 
-      <div class="grid-card an" style="animation-delay:.42s" aria-hidden="true">
-        <div class="yr"><b class="serif">2026</b><em>MOMENTUM</em></div>
-        <div class="months" id="months"></div>
+    <!-- the phone demo: a looping walk-through, rising in on load + scroll -->
+    <section class="stage" aria-label="A walk-through of Getsu">
+      <div class="phone" id="phone">
+        <div class="phone-island"></div>
+        <div class="phone-screen">
+          <div class="st"><span>9:41</span><span class="dots"><i></i><i></i><i></i></span></div>
+          <div class="screens" id="screens">
+
+            <!-- 1 · Timeline (the year home) -->
+            <div class="scr on" data-scr="0">
+              <div class="seg"><span>Years</span><span>Year</span><span class="a">Timeline</span></div>
+              <div class="yhead"><h3 class="yr">2026</h3><span class="word">MOMENTUM</span></div>
+              <div class="mrow"><span class="dot" style="background:var(--mood-3)"></span><div><span class="mo-n">Jan</span><p class="lead">A quiet, hopeful start. Set intentions without pressure and mostly kept them.</p></div></div>
+              <div class="mrow"><span class="dot" style="background:var(--mood-4)"></span><div><span class="mo-n">Mar</span><p class="lead">Momentum arrived. Running finally clicked and I had time to read again.</p><span class="chip">Read 12 books</span></div></div>
+              <div class="mrow"><span class="dot" style="background:var(--mood-5)"></span><div><span class="mo-n">Jun</span><span class="now">THIS MONTH</span><p class="lead">The month it all came together. Ran my first 10k without stopping.</p><span class="chip">Run a half marathon</span></div></div>
+              <div class="mrow faint"><span class="dot" style="background:var(--border)"></span><div><span class="mo-n">Jul</span><p class="lead">yet to come</p></div></div>
+              <div class="mrow faint"><span class="dot" style="background:var(--border)"></span><div><span class="mo-n">Aug</span><p class="lead">yet to come</p></div></div>
+            </div>
+
+            <!-- 2 · Month (the journaling ritual) -->
+            <div class="scr" data-scr="1">
+              <span class="mv-back">← 2026</span>
+              <h2 class="mv-title serif">June 2026</h2>
+              <p class="lbl">JOURNAL</p>
+              <div class="jr">
+                <h4 class="serif">The month it all came together</h4>
+                <p>Ran my first 10k without stopping. The training finally clicked.</p>
+                <ul><li>Cooked dinner for six friends</li><li>Booked the autumn trip</li></ul>
+              </div>
+              <p class="lbl">GOALS THIS MONTH</p>
+              <div class="goal done"><span class="box"></span><span>Run a half marathon</span></div>
+              <div class="goal"><span class="box"></span><span>Save for Japan trip</span></div>
+              <p class="lbl">THIS MONTH</p>
+              <div class="trk"><b>Runs</b><span class="val">8 runs</span></div>
+              <div class="trk"><b>Books read</b><span class="val">2 books</span></div>
+            </div>
+
+            <!-- 3 · Goals (planned into the year) -->
+            <div class="scr" data-scr="2">
+              <h2 class="mv-title serif" style="margin-top:2px">Goals · 2026</h2>
+              <p class="lbl">IN THE CALENDAR</p>
+              <div class="gline"><span>Morning pages daily</span><em>Jan</em></div>
+              <div class="gline"><span>Read 12 books</span><em>Mar</em></div>
+              <div class="gline"><span>Learn film photography</span><em>Apr</em></div>
+              <div class="gline"><span>Run a half marathon</span><em>Jun</em></div>
+              <p class="lbl">UNPLANNED</p>
+              <div class="gline un"><span>Declutter the flat</span><em>on the board</em></div>
+              <div class="gline un"><span>Plan the garden</span><em>on the board</em></div>
+            </div>
+
+          </div>
+          <nav class="tabs">
+            <a class="a"><b></b>Year</a>
+            <a><b></b>Goals</a>
+            <a><b></b>Reflect</a>
+            <a><b></b>You</a>
+          </nav>
+        </div>
+      </div>
+      <div class="ticks" id="ticks" role="tablist" aria-label="Choose a screen">
+        <button class="a" aria-label="Timeline"></button>
+        <button aria-label="A month"></button>
+        <button aria-label="Goals"></button>
       </div>
     </section>
 
@@ -171,7 +327,7 @@
 
     <section class="price wrap sr">
       <div class="amt serif">Free is the whole app.</div>
-      <p>Every surface, unlimited goals and entries, local photos, and export cost nothing. Premium only adds cross-device sync, more photos, and encrypted backup.</p>
+      <p>Every surface, unlimited goals and entries, local photos, and export cost nothing. Premium only adds cross-device sync, more photos, and cloud backup.</p>
       <div class="cta-row"><a class="btn btn-primary" href="/app/">Start your year</a></div>
       <a class="more" href="/pricing">See the full pricing page</a>
     </section>
@@ -180,31 +336,22 @@
   <footer>
     <div class="wrap sr">
       <p><img class="fmark" src="/logo.png" alt="" /><span class="serif" style="font-size:15px;color:var(--text)">Getsu</span>, a calm monthly journal by <a href="https://nekkolabs.com">Nekko Labs</a>.</p>
-      <p class="sub">Local-first · MIT licensed · <a href="/pricing">Pricing</a> · <a href="https://github.com/nekko-labs/getsu">Source on GitHub</a></p>
+      <p class="sub">Local-first · MIT licensed · <a href="/pricing">Pricing</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/nekko-labs/getsu">Source on GitHub</a></p>
     </div>
   </footer>
 
   <script>
-    // Paint the signature year grid with the app's mood-color primitive.
     (function () {
       // hiding for the entrance animations is gated on this class, so content
       // stays visible when scripts never run (no-JS, throttled background tab)
       document.documentElement.classList.add('js');
-      var abbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      var moods = [3,4,2,4,5,3,4,5,4,3,5,4];
-      var el = document.getElementById('months');
-      for (var i = 0; i < 12; i++) {
-        var d = document.createElement('div');
-        d.className = 'mo'; d.style.background = 'var(--mood-' + moods[i] + ')'; d.textContent = abbr[i];
-        // gentle stagger, chained onto the grid card's .42s entrance
-        d.style.animationDelay = (0.5 + i * 0.04) + 's';
-        el.appendChild(d);
-      }
+
       // trigger the opening animation; classes are added synchronously (this
-      // script sits at the end of body) so the animations start on first paint,
-      // and nothing waits on requestAnimationFrame
+      // script sits at the end of body) so the animations start on first paint
       var mark = document.querySelector('.mark'); if (mark) mark.classList.add('play');
       document.querySelectorAll('.an').forEach(function (n) { n.classList.add('play'); });
+      var stage = document.querySelector('.stage'); if (stage) stage.classList.add('play');
+
       // reveal below-the-fold sections once, as they enter the viewport
       var srs = document.querySelectorAll('.sr');
       if ('IntersectionObserver' in window) {
@@ -219,6 +366,56 @@
         srs.forEach(function (n) { io.observe(n); });
       } else {
         srs.forEach(function (n) { n.classList.add('in'); });
+      }
+
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // ── the phone demo carousel ──────────────────────────
+      var scrs = Array.prototype.slice.call(document.querySelectorAll('.scr'));
+      var ticks = Array.prototype.slice.call(document.querySelectorAll('#ticks button'));
+      var cur = 0, timer = null;
+      function show(i) {
+        cur = (i + scrs.length) % scrs.length;
+        scrs.forEach(function (s, k) { s.classList.toggle('on', k === cur); });
+        ticks.forEach(function (t, k) { t.classList.toggle('a', k === cur); });
+      }
+      function play() { if (reduce) return; stop(); timer = setInterval(function () { show(cur + 1); }, 3600); }
+      function stop() { if (timer) { clearInterval(timer); timer = null; } }
+      ticks.forEach(function (t, k) {
+        t.addEventListener('click', function () { show(k); play(); });
+      });
+      // pause the loop while the pointer is over the phone, resume on leave
+      var phone = document.getElementById('phone');
+      if (phone) { phone.addEventListener('mouseenter', stop); phone.addEventListener('mouseleave', play); }
+      // only run the loop while the phone is on screen (saves work when scrolled away)
+      if ('IntersectionObserver' in window && phone) {
+        new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { play(); } else { stop(); } });
+        }, { threshold: 0.25 }).observe(phone);
+      } else { play(); }
+
+      // ── gentle "rising iPhone" parallax on scroll ────────
+      // once the load entrance has run, let the phone drift up a little as the
+      // page scrolls, so it keeps rising into view. Purely transform-based and
+      // rAF-throttled; disabled under reduced-motion.
+      if (phone && !reduce) {
+        var settled = false, ticking = false;
+        setTimeout(function () { settled = true; }, 1650); // after phone-rise finishes
+        function onScroll() {
+          if (!settled || ticking) return;
+          ticking = true;
+          requestAnimationFrame(function () {
+            var r = stage.getBoundingClientRect();
+            var vh = window.innerHeight || 800;
+            // progress of the stage through the viewport (0 below, 1 above)
+            var p = 1 - (r.top + r.height / 2) / (vh + r.height / 2);
+            p = Math.max(-0.5, Math.min(1.2, p));
+            phone.style.transform = 'translateY(' + (-p * 34) + 'px)';
+            ticking = false;
+          });
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
       }
     })();
   </script>
