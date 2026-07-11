@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Privacy · Getsu</title>
+  <meta name="description" content="How Getsu handles your data: local-first by default, no account, no analytics, no tracking. Optional AI and cross-device sync are clearly explained." />
+  <meta name="theme-color" content="#fbf7f1" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1c1a18" media="(prefers-color-scheme: dark)" />
+  <link rel="canonical" href="https://getsu.app/privacy" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Getsu" />
+  <meta property="og:url" content="https://getsu.app/privacy" />
+  <meta property="og:title" content="Privacy · Getsu" />
+  <meta property="og:description" content="Local-first by default: no account, no analytics, no tracking. Optional AI and sync explained plainly." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="robots" content="index,follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/site.css" />
+</head>
+<body>
+  <nav class="nav an">
+    <a class="brand" href="/"><img src="/logo.png" alt="" /><span class="serif">Getsu</span></a>
+    <div class="links">
+      <a href="/pricing">Pricing</a>
+      <a href="https://github.com/nekko-labs/getsu">GitHub</a>
+      <a class="go" href="/app/">Open the app →</a>
+    </div>
+  </nav>
+
+  <main>
+    <article class="legal">
+      <header class="lead-head an">
+        <h1 class="serif">Privacy Policy</h1>
+        <p class="eff">Effective 11 July 2026 · Getsu, by Nekko Labs</p>
+      </header>
+
+      <p class="intro an" style="animation-delay:.1s">Getsu is a <strong>local-first</strong> monthly journal. By default your journal never leaves your device, and using the free app requires no account, no sign-up, and no tracking. This page explains exactly what data exists, where it lives, and the few optional features that can send data off your device (only when you turn them on).</p>
+
+      <div class="tldr an" style="animation-delay:.18s">
+        <h2>THE SHORT VERSION</h2>
+        <ul>
+          <li>Your journal, goals, moods, and photos are stored <strong>on your own device</strong>. We can't see them.</li>
+          <li>The free app has <strong>no account, no analytics, no cookies, and no tracking</strong>.</li>
+          <li><strong>AI assist</strong> is optional and uses <strong>your own</strong> API key; when used, journal text (never photos) goes directly to Anthropic, not to us.</li>
+          <li><strong>Premium sync</strong> is optional: it stores a copy of your journal in our cloud so your devices can share it. It is encrypted in transit and at rest, but it is <strong>not end-to-end encrypted</strong>.</li>
+          <li>You can <strong>export everything</strong> as plain files at any time, and delete it whenever you like.</li>
+        </ul>
+      </div>
+
+      <section>
+        <h2 class="sec serif">Who we are</h2>
+        <p>Getsu is made by <strong>Nekko Labs</strong> ("we", "us"). For any privacy question or request, contact <a class="inl" href="mailto:privacy@nekkolabs.com">privacy@nekkolabs.com</a>. Getsu is open source; you can read exactly what the app does at <a class="inl" href="https://github.com/nekko-labs/getsu">github.com/nekko-labs/getsu</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">What Getsu stores, and where</h2>
+        <p>Everything you write lives in a single "vault": your monthly journal entries, highlights, optional struggles, moods, goals and their notes, trackers, and photos. By default this vault is kept <strong>only on your device</strong>, in two places you control:</p>
+        <ul class="list">
+          <li><strong>In the browser's local database</strong> (IndexedDB) on the device where you use Getsu.</li>
+          <li><strong>Optionally, in a folder you choose</strong> on your own disk. If you connect a folder, Getsu mirrors your journal there as plain Markdown and JSON files you can open in any editor. These files are written in readable form on your own machine.</li>
+        </ul>
+        <p>A few small settings are also kept locally (whether you've seen onboarding, your last monthly-nudge date, and — if you add one — your AI key and model choice). None of this is sent to us.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">What we do <em>not</em> collect</h2>
+        <ul class="list">
+          <li><strong>No analytics or telemetry.</strong> Getsu contains no Google Analytics, PostHog, Sentry, Mixpanel, or any other tracking or usage-measurement tool.</li>
+          <li><strong>No advertising, no profiling, no data sales.</strong> We never sell or share your personal data, because in the default free app we never receive it.</li>
+          <li><strong>No cookies in the app.</strong> The Getsu app sets no cookies. (If you enable Premium sign-in, your login session is stored in your browser's local storage, not in a cookie.)</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="sec serif">The marketing website (getsu.app)</h2>
+        <p>These pages (the landing page, pricing, and this policy) load the <strong>Fraunces</strong> and <strong>Inter</strong> fonts from Google Fonts. To serve those fonts, Google receives your IP address and browser user-agent, as it does for any site using Google Fonts. We set no cookies and run no analytics on these pages. See <a class="inl" href="https://policies.google.com/privacy">Google's privacy policy</a> for how Google handles font requests.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">Optional: AI assist</h2>
+        <p>Getsu can help you draft prompts or summarise a month using Anthropic's Claude models. This is <strong>off unless you add your own Anthropic API key</strong>. When it is off, an offline mock runs and nothing leaves your device.</p>
+        <p>When you add a key and use an AI feature, the request is sent <strong>directly from your browser to Anthropic</strong> (api.anthropic.com), not through our servers. What is sent is the text needed for that feature, for example a month's reflection, highlights, mood, goal titles, and tracker totals. <strong>Your photos are never sent.</strong> Your API key is stored only on your device and is never included in your vault, exports, or sync. Anthropic's handling of that text is governed by <a class="inl" href="https://www.anthropic.com/legal/privacy">Anthropic's privacy policy</a>.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">Optional: Premium cross-device sync and backup</h2>
+        <p>Premium lets your journal follow you across devices and keeps a cloud backup. It is entirely optional and off until you sign in. Sync and backup are provided using <strong>Supabase</strong> as our hosting and database provider.</p>
+        <p>When you turn it on:</p>
+        <table class="data">
+          <thead><tr><th>Data</th><th>Why</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td>Your email address</td><td>To sign you in with a one-time magic link (there is no password)</td><td>Supabase Auth</td></tr>
+            <tr><td>Your plan status (free / premium)</td><td>To know which features to enable</td><td>Supabase database</td></tr>
+            <tr><td>A copy of your vault (entries, goals, moods, trackers, and photos)</td><td>So your other devices can load the same journal</td><td>Supabase database</td></tr>
+          </tbody>
+        </table>
+        <p>Your rows are protected by per-user access rules so that only your signed-in account can read or write them.</p>
+        <div class="callout">
+          <p><strong>Honest note on encryption:</strong> your synced data is encrypted in transit (HTTPS) and encrypted at rest on our provider's disks, but it is <strong>not end-to-end encrypted</strong> today. That means, in principle, it could be accessed on the server. If that matters to you, keep sync off and stay fully local, where only your device holds your journal.</p>
+        </div>
+        <p>Photos are part of the vault, so they are included in the cloud copy only when sync is enabled. Kept fully local (the default), your photos never leave your device.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">Notifications</h2>
+        <p>Getsu can show a single gentle reminder when a new month begins, using your device's built-in notifications and only if you allow it. There is no push server: nothing about the reminder is sent to us or anyone else.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">Your choices and rights</h2>
+        <ul class="list">
+          <li><strong>Export</strong> your entire journal at any time as plain Markdown and JSON.</li>
+          <li><strong>Delete local data</strong> by disconnecting your folder and clearing site data for Getsu in your browser.</li>
+          <li><strong>Delete cloud data</strong> (if you used Premium) by asking us at <a class="inl" href="mailto:privacy@nekkolabs.com">privacy@nekkolabs.com</a>; we will delete your account, profile, and stored vault.</li>
+          <li><strong>Access, correction, and objection.</strong> Because your data is on your device you already have direct access to it; for anything we hold from Premium sync, you can request a copy or deletion. We honour applicable rights under laws such as the GDPR and CCPA.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="sec serif">Children</h2>
+        <p>Getsu is not directed at children under 13, and we do not knowingly collect data from them. Because the free app stores nothing on our servers, no personal data is collected from any user by default.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">Changes to this policy</h2>
+        <p>If we change how Getsu handles data, we will update this page and its effective date. Material changes to Premium sync or any new data flow will be described here before they take effect. Because the app is open source, changes are also visible in the project's history.</p>
+      </section>
+
+      <section>
+        <h2 class="sec serif">Contact</h2>
+        <p>Questions or requests: <a class="inl" href="mailto:privacy@nekkolabs.com">privacy@nekkolabs.com</a>.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <div class="wrap sr">
+      <p><img class="fmark" src="/logo.png" alt="" /><span class="serif" style="font-size:15px;color:var(--text)">Getsu</span>, a calm monthly journal by <a href="https://nekkolabs.com">Nekko Labs</a>.</p>
+      <p class="sub">Local-first · MIT licensed · <a href="/pricing">Pricing</a> · <a href="/privacy" aria-current="page">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/nekko-labs/getsu">Source on GitHub</a></p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      document.documentElement.classList.add('js');
+      document.querySelectorAll('.an').forEach(function (n) { n.classList.add('play'); });
+      var srs = document.querySelectorAll('.sr');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+          });
+        }, { rootMargin: '0px 0px -48px 0px' });
+        srs.forEach(function (n) { io.observe(n); });
+      } else {
+        srs.forEach(function (n) { n.classList.add('in'); });
+      }
+    })();
+  </script>
+</body>
+</html>

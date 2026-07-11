@@ -8,6 +8,19 @@ import { Heading1, Heading2, Bold, Italic, List, Quote, Link2, Code } from 'luci
 // - or * bullets, 1. ordered lists, > quote, **bold**, *italic*, `code`,
 // [text](url) links, and --- rules.
 
+// Only let links through with a safe scheme. Markdown can arrive from synced
+// data or AI output, so a `javascript:`/`data:`/`vbscript:` URL must never
+// become a clickable href; when the scheme is unsafe we return null and render
+// the link's text as plain text instead.
+function safeHref(url: string): string | null {
+  const u = url.trim();
+  // relative, root-relative, anchor, and protocol-relative links are fine
+  if (/^(\/|\.|#|\?)/.test(u) || /^\/\//.test(u)) return u;
+  const scheme = /^([a-zA-Z][a-zA-Z0-9+.-]*):/.exec(u);
+  if (!scheme) return u; // no scheme -> treat as relative
+  return /^(https?|mailto|tel)$/i.test(scheme[1]) ? u : null;
+}
+
 // ---------------------------------------------------------------------------
 // Inline spans: **bold**, *italic*, `code`, [text](url)
 // ---------------------------------------------------------------------------
@@ -31,8 +44,11 @@ function inline(text: string, keyBase: string): ReactNode[] {
         >{m[4]}</code>,
       );
     } else if (m[5] != null && m[6] != null) {
+      const href = safeHref(m[6]);
       nodes.push(
-        <a key={`${keyBase}-${k++}`} href={m[6]} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>{m[5]}</a>,
+        href
+          ? <a key={`${keyBase}-${k++}`} href={href} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>{m[5]}</a>
+          : <span key={`${keyBase}-${k++}`}>{m[5]}</span>,
       );
     }
     rest = rest.slice(m.index + m[0].length);
