@@ -68,7 +68,7 @@ export default function PricingView() {
     <div className="py-2">
       <h1 className="serif text-3xl font-semibold tracking-tight">Plans</h1>
       <p className="mb-6 mt-1.5 text-[13.5px] leading-relaxed" style={{ color: 'var(--text-soft)' }}>
-        The whole journal is free, forever. Premium adds sync, voice, and more photos, never a paywall on writing.
+        Open source and local-first: own your data, export any time, and we never sell it. The core journal is free; Premium adds sync, voice, and more photos.
       </p>
 
       <div className="grid gap-5 md:grid-cols-2">
