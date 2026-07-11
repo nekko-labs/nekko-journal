@@ -184,6 +184,11 @@ Mirror getsu-notes conventions; global defaults in `../../knowledgebase/principl
 
 ## Shipped
 
+### Phase 4j — Site hero demo + legal + security (PR #26, 2026-07-11)
+- [x] **T_site_hero** — Landing hero rework: removed the signature month grid (and its staggered month-tile entrance from T_motion) and replaced it with a **phone demo** — an iPhone mockup that loops a walk-through of the Timeline, a month's journal, and Goals, recreated in HTML/CSS from the app's seeded content and tokens. Fades in and rises on load (`phone-rise`) with a rAF-throttled scroll parallax; pauses on hover, only animates on-screen, reduced-motion aware. No animation library or bundled video (keeps the page zero-dependency and CSP-clean). · Done: 2026-07-11 · [spec](SPEC.md#platform--growth)
+- [x] **T_legal** — New `/privacy` and `/terms` pages (shared `.legal` styles in `site.css`, linked in every footer). Privacy policy matches the code exactly (local-first, no analytics/cookies, BYO-key AI to Anthropic, optional Supabase sync). Corrected the misleading "**Encrypted** cloud backup" claim to "Secure cloud backup" site-wide and disclosed that sync is **not end-to-end encrypted** (vault stored as plaintext JSONB; TLS + at-rest only). · Done: 2026-07-11 · [spec](SPEC.md#own-your-data--sync)
+- [x] **T_sec_hardening** — Markdown link renderer now allowlists URL schemes (blocks `javascript:`/`data:`/`vbscript:`, renders unsafe links as plain text). Added security headers in `vercel.json`: CSP as **report-only** first (self + `*.supabase.co` + `api.anthropic.com` + Google Fonts + data/blob images), HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`. · Done: 2026-07-11
+
 ### Phase 0 — Docs & spec
 - [x] **T1** — Project docs in obsurdian (README, AGENTS, original-prompt, build prompt, memory).
 
