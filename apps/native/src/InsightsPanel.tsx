@@ -1,11 +1,12 @@
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text } from 'react-native';
 import { MONTH_ABBR, isMonthFilled, countMonthPhotos } from '@getsu/core';
-import { useVault } from '../store';
-import { serif } from '../theme';
+import { useVault } from './store';
+import { serif } from './theme';
 
 function fmt(n: number) { return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n); }
 
-export default function InsightsScreen() {
+/** The compact journey metrics panel embedded in the You page. */
+export default function InsightsPanel() {
   const t = useVault((s) => s.tokens());
   const vault = useVault((s) => s.vault)!;
   const year = useVault((s) => s.currentYear);
@@ -28,10 +29,7 @@ export default function InsightsScreen() {
   const done = planned.filter((g) => g.status === 'done').length;
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: t.bg }} contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
-      <Text style={{ fontFamily: serif, fontSize: 30, fontWeight: '600', color: t.text }}>Insights</Text>
-      <Text style={{ fontSize: 13.5, color: t.textSoft, marginTop: 6, marginBottom: 18 }}>Everything you've done, at a month scale.</Text>
-
+    <>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
         {tiles.map((tile, i) => (
           <View key={i} style={{ width: '33.3%', marginBottom: 22 }}>
@@ -58,6 +56,6 @@ export default function InsightsScreen() {
       <View style={{ height: 6, borderRadius: 99, backgroundColor: t.surface2, overflow: 'hidden' }}>
         <View style={{ height: '100%', width: `${planned.length ? (done / planned.length) * 100 : 0}%`, backgroundColor: t.accent }} />
       </View>
-    </ScrollView>
+    </>
   );
 }

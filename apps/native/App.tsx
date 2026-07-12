@@ -10,7 +10,7 @@ import { handleDeepLink } from './src/intents';
 import YearScreen from './src/screens/YearScreen';
 import MonthScreen from './src/screens/MonthScreen';
 import GoalsScreen from './src/screens/GoalsScreen';
-import InsightsScreen from './src/screens/InsightsScreen';
+import ReflectScreen from './src/screens/ReflectScreen';
 import YouScreen from './src/screens/YouScreen';
 
 export type RootStackParams = {
@@ -21,7 +21,7 @@ export type RootStackParams = {
 const Stack = createNativeStackNavigator<RootStackParams>();
 const Tab = createBottomTabNavigator();
 
-const TAB_EMOJI: Record<string, string> = { Year: '🗓', Goals: '◎', Insights: '📊', You: '🌙' };
+const TAB_EMOJI: Record<string, string> = { Year: '🗓', Goals: '◎', Reflect: '✧', You: '🌙' };
 
 function Tabs() {
   const t = useVault((s) => s.tokens());
@@ -37,7 +37,7 @@ function Tabs() {
     >
       <Tab.Screen name="Year" component={YearScreen} />
       <Tab.Screen name="Goals" component={GoalsScreen} />
-      <Tab.Screen name="Insights" component={InsightsScreen} />
+      <Tab.Screen name="Reflect" component={ReflectScreen} />
       <Tab.Screen name="You" component={YouScreen} />
     </Tab.Navigator>
   );

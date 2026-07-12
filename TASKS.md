@@ -1,6 +1,6 @@
 ---
 status: active
-last-updated: 2026-07-10
+last-updated: 2026-07-12
 owner: Philip
 ---
 
@@ -179,10 +179,12 @@ Mirror getsu-notes conventions; global defaults in `../../knowledgebase/principl
 
 ### Phase 3c — Cloud, hosting & tiering (handoff)
 - [ ] **T_cloud_handoff** — Actual Supabase project + Vercel deploy + Stripe billing — handoff to Philip (needs account credentials). Includes moving photos from data URLs to Supabase Storage (private bucket + signed URLs) before promoting "cloud photos". · Added: 2026-06-29 · [spec](SPEC.md#own-your-data--sync)
-- [ ] **T_reflect_native**: Mirror the web Phase 8 IA on native (`apps/native`): Reflect tab (photo memories + `reflectOnJourney`), Insights folded into You, Timeline-first Year. Core ops are already shared, so this is native-view work only. · Added: 2026-07-10 · [spec](SPEC.md#reflect-surface)
 
 
 ## Shipped
+
+### Phase 11 — Native Phase-8 IA parity (2026-07-12)
+- [x] **T_reflect_native** — Mirrored the web Phase 8 IA on native (`apps/native`, native-view only; core ops already shared). New **Reflect** screen (`screens/ReflectScreen.tsx`) replacing the Insights tab slot: a horizontal **photo-memories rail** (`photoMemories`, tap → that month; journal-snippet fallback cards when no photos; quiet empty state) and an **offline whole-journey reflection** (`buildReflectionMaterial` + `reflectOnJourneyMock`, no AI provider on native so offline-only, no Claude button) grouped into Highlights / Areas of growth / To work on with colored dot bullets. **Insights folded into You**: extracted `InsightsPanel.tsx` (tiles + goals-across-year bars + progress) embedded atop `YouScreen`; removed `InsightsScreen.tsx`. **Timeline-first Year** (`YearScreen.tsx`): journaling-first vertical timeline — big month number (faint for future/unwritten, accent for written/current), month name, journal lead line, quiet goals + photo-count meta; kept editable theme word + add-a-goal. Tabs now Year / Goals / Reflect / You. Native typecheck + root lint/test green. · Done: 2026-07-12 · [spec](SPEC.md#reflect-surface)
 
 ### Phase 4j — Site hero demo + legal + security (PR #26, 2026-07-11)
 - [x] **T_site_hero** — Landing hero rework: removed the signature month grid (and its staggered month-tile entrance from T_motion) and replaced it with a **phone demo** — an iPhone mockup that loops a walk-through of the Timeline, a month's journal, and Goals, recreated in HTML/CSS from the app's seeded content and tokens. Fades in and rises on load (`phone-rise`) with a rAF-throttled scroll parallax; pauses on hover, only animates on-screen, reduced-motion aware. No animation library or bundled video (keeps the page zero-dependency and CSP-clean). · Done: 2026-07-11 · [spec](SPEC.md#platform--growth)

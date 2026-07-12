@@ -2,6 +2,7 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { isMonthFilled, intentCatalog } from '@getsu/core';
 import { useVault } from '../store';
 import { serif, type Tokens } from '../theme';
+import InsightsPanel from '../InsightsPanel';
 
 const SYNC_LABEL: Record<string, string> = { off: 'Off', idle: 'Ready', syncing: 'Syncing…', synced: 'Synced', error: 'Error' };
 
@@ -30,6 +31,9 @@ export default function YouScreen() {
           <Text style={{ fontSize: 13, color: t.textSoft, marginTop: 2 }}>{filled} months · since {since}</Text>
         </View>
       </View>
+
+      <Text style={label(t)}>INSIGHTS</Text>
+      <InsightsPanel />
 
       <Text style={label(t)}>THEME</Text>
       <Seg t={t} options={[{ k: 'light', label: 'Light' }, { k: 'dark', label: 'Dark' }]} value={theme} onChange={(k) => setTheme(k as 'light' | 'dark')} />
